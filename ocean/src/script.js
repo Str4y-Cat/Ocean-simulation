@@ -1,12 +1,14 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
+import {directionTexture} from './utils/TextureMaker'
 // import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import waterVertexShader from './shaders/water/vertex.glsl'
 import waterFragmentShader from './shaders/water/fragment.glsl'
 
 import shadingVertexShader from './shaders/test/vertex.glsl'
 import shadingFragmentShader from './shaders/test/fragment.glsl'
+
 
 /**
  * Base
@@ -15,6 +17,8 @@ import shadingFragmentShader from './shaders/test/fragment.glsl'
 const gui = new GUI()
 const worldValues = {}
 
+//textures
+// 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
@@ -115,7 +119,8 @@ gui.add(worldValues,'waveAngle4').min(0).max(2).step(0.001).onChange(e=>
 
 const waterGeometry = new THREE.PlaneGeometry(8, 8, 512, 512)
 
-
+const directions=directionTexture(0,1,8)
+console.log(directions)
 // Material
 
 
@@ -126,6 +131,7 @@ const waterMaterial = new THREE.ShaderMaterial({
     uniforms:
     {
         uTime: { value: 0 },
+        uDirection:{value:directions},
         uWaveAngle1:{value: setAngle(0)},
         uWaveAngle2:{value: setAngle(0)},
         uWaveAngle3:{value: setAngle(0)},
@@ -191,7 +197,7 @@ const docehedron = new THREE.Mesh(
 )
 // sphere.position.x = - 3
 docehedron.position.y =  3
-// scene.add(docehedron)
+scene.add(docehedron)
 
 
 /**
