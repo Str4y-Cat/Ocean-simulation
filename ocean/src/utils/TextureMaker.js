@@ -33,11 +33,18 @@ export  function directionTexture(value,varience,count)
 
 function randomDirection(value,varience)
 {
-    value=0.0
+    // if(value>2){
+    //     value=value%2
+    // }
+    // value=0.0
     let randomValue= (Math.random()-0.5)*2
     //  randomValue= 0
-    value+=randomValue*0.5
+    value+=randomValue*varience
+    // if(value>2 ||value<-2)
+    // {
 
+    // }
+    console.log(value)
     const direction=(new THREE.Vector2(Math.cos(value*Math.PI),Math.sin(value*Math.PI)))
     // console.log(`direction:`)
     direction.normalize()

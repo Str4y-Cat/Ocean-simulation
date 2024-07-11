@@ -7,7 +7,6 @@ uniform float uTime;
 // varying float vElevation;
 varying vec3 vPosition;
 varying vec3 vNormal;
-varying vec4 vColor;
 
 #include ../lights/ambient.glsl
 // #include ../lights/directional.glsl
@@ -19,16 +18,9 @@ void main()
 {
     // float positionColor=smoothstep(-0.5,1.0,vPosition.y);
     vec3 normal= normalize(vNormal);
-
-    
     vec3 color1= vec3(0.1,0.3,0.8);
     vec3 viewDirection= normalize(vPosition-cameraPosition);
-
-
-    //world reflecions
-    // vec3 reflectionDirection= reflect(viewDirection,normal)
-    // vec3 color= textureCube(uEnvironmentTexture,reflectionDirection)
-
+    
     //light
     vec3 light= vec3(0.0);
     light+=ambientLight(
@@ -62,7 +54,6 @@ void main()
     //final color
 
     gl_FragColor = vec4(color1, 1.0);
-    // gl_FragColor = vec4(vColor.xyz, 1.0);
     // vec3 normal=
 
     // gl_FragColor = vec4(normal, 1.0);

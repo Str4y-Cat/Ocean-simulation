@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import {directionTexture} from './utils/TextureMaker'
+
 // import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import waterVertexShader from './shaders/water/vertex.glsl'
 import waterFragmentShader from './shaders/water/fragment.glsl'
@@ -16,9 +17,17 @@ import shadingFragmentShader from './shaders/test/fragment.glsl'
 // Debug
 const gui = new GUI()
 const worldValues = {}
-
+const debug={}
 //textures
-// 
+const cubeTextureLoader= new THREE.CubeTextureLoader()
+const environmentMap= cubeTextureLoader.load([
+    '/environmentMaps/0/px.png',
+    '/environmentMaps/0/nx.png',
+    '/environmentMaps/0/py.png',
+    '/environmentMaps/0/ny.png',
+    '/environmentMaps/0/pz.png',
+    '/environmentMaps/0/nz.png',]
+)
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
@@ -59,9 +68,9 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(25, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 7
-camera.position.y = 7
-camera.position.z = 7
+camera.position.x = 25
+camera.position.y = 14
+camera.position.z = 25
 scene.add(camera)
 
 // Controls
@@ -83,44 +92,32 @@ renderer.setPixelRatio(sizes.pixelRatio)
 
 // #region waves
 //wave shader
-worldValues.waveAngle1=0.279
-worldValues.waveAngle2=1.238
-worldValues.waveAngle3=0
-worldValues.waveAngle4=0
-const setAngle=(value)=>
-    {
-        return (new THREE.Vector2(Math.cos(value*Math.PI),Math.sin(value*Math.PI)))
-    }
-gui.add(worldValues,'waveAngle1').min(0).max(2).step(0.001).onChange(e=>
-    {
-        const angles= setAngle(worldValues.waveAngle1)
-        waterMaterial.uniforms.uWaveAngle1.value=angles
-    }
-    )
-gui.add(worldValues,'waveAngle2').min(0).max(2).step(0.001).onChange(e=>
-    {
-        const angles= setAngle(worldValues.waveAngle2)
-        waterMaterial.uniforms.uWaveAngle2.value=angles
-    }
-    )
-gui.add(worldValues,'waveAngle3').min(0).max(2).step(0.001).onChange(e=>
-    {
-        const angles= setAngle(worldValues.waveAngle3)
-        waterMaterial.uniforms.uWaveAngle3.value=angles
-    }
-    )
-gui.add(worldValues,'waveAngle4').min(0).max(2).step(0.001).onChange(e=>
-    {
-        const angles= setAngle(worldValues.waveAngle4)
-        waterMaterial.uniforms.uWaveAngle4.value=angles
-    }
-    )
+
+//wave direction
+const preferedDirection=0.0
+const directions=directionTexture(preferedDirection,2,64)
 
 
-const waterGeometry = new THREE.PlaneGeometry(8, 8, 512, 512)
-
-const directions=directionTexture(0,1,8)
 console.log(directions)
+const coneGeometry = new THREE.ConeGeometry( 0.1, 1, 3 ); 
+const coneMaterial = new THREE.MeshBasicMaterial( {color: "red"} );
+const cone = new THREE.Mesh(coneGeometry, coneMaterial ); scene.add( cone );
+cone.position.y=3;
+// cone.rotation.x=2
+// cone.rotation.z=2
+
+cone.rotateX(Math.PI/2)
+cone.rotateZ(-Math.PI/2)
+
+// cone.rotateX(Math.PI/2)
+cone.rotation.z=(preferedDirection*-Math.PI)-Math.PI/2
+// cone.rotateX
+
+
+
+const waterGeometry = new THREE.PlaneGeometry(64, 64, 1024, 1024)
+
+
 // Material
 
 
@@ -132,18 +129,22 @@ const waterMaterial = new THREE.ShaderMaterial({
     {
         uTime: { value: 0 },
         uDirection:{value:directions},
-        uWaveAngle1:{value: setAngle(0)},
-        uWaveAngle2:{value: setAngle(0)},
-        uWaveAngle3:{value: setAngle(0)},
-        uWaveAngle4:{value: setAngle(0)}
+        uEuler:{value:Math.E},
+        uOctaves:{value:1}
+        // uWaveAngle1:{value: setAngle(0)},
+        // uWaveAngle2:{value: setAngle(0)},
+        // uWaveAngle3:{value: setAngle(0)},
+        // uWaveAngle4:{value: setAngle(0)}
         
     }
 }) 
 
+gui.add(waterMaterial.uniforms.uOctaves,'value').min(1).max(32).step(1).name("Octaves")
 
 // Mesh
 const water = new THREE.Mesh(waterGeometry, waterMaterial)
 water.rotation.x = - Math.PI * 0.5
+
 scene.add(water)
 
 //#endregion
@@ -151,6 +152,7 @@ scene.add(water)
 /**
  * Material
  */
+
 const materialParameters = {}
 materialParameters.color = '#ffffff'
 
@@ -197,6 +199,7 @@ const docehedron = new THREE.Mesh(
 )
 // sphere.position.x = - 3
 docehedron.position.y =  3
+docehedron.visible=false
 scene.add(docehedron)
 
 
@@ -207,6 +210,10 @@ scene.add(docehedron)
 //     new THREE.PlaneGeometry(),
 //     new THREE.MeshBasicMaterial()
 // )
+
+const axisHelper= new THREE.AxesHelper()
+
+scene.add(axisHelper)
 
 // directionalLightHelper.material.color.setRGB(0.1,0.1,1)
 // directionalLightHelper.material.side= THREE.DoubleSide
@@ -221,12 +228,28 @@ const PointHelper= new THREE.Mesh(
     new THREE.MeshBasicMaterial()
 )
 
-PointHelper.material.color.setRGB(1,0.0,1)
+PointHelper.material.color.setRGB(1,1,1)
 // directionalLightHelper.material.side= THREE.DoubleSide
 PointHelper.position.set(0,5,0)
 
 scene.add(PointHelper)
+debug.oco=false
+gui.add(debug,'oco').onChange(bool=>
+{
+    if(bool)
+    {
+        docehedron.visible=true
+        // scene.add(PointHelper)
+    }
+    else{
+        // console.log('removing')
+        docehedron.visible=false
 
+        // scene.remove(PointHelper)
+        // scene.matrixWorldNeedsUpdate=true
+    }
+}
+)
 
 // const directionalPointHelper2= new THREE.Mesh(
 //     new THREE.IcosahedronGeometry(0.1,2),

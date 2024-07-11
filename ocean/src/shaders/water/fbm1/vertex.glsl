@@ -1,11 +1,9 @@
 uniform float uTime;
 uniform sampler2D uDirection;
-uniform float uEuler;
-uniform float uOctaves;
+
 varying float vElevation;
 varying vec3 vPosition;
 varying vec3 vNormal;
-varying vec4 vColor;
 // varying float vTime;
 
 // #include ./includes/perlinClassic3D.glsl
@@ -23,14 +21,11 @@ float getDirection(vec2 direction, vec4 position)
 //t-time
 //speed- speed
 float getElevation(float a,float D,float w,float t,float speed,float phase){
-    float ePow= pow(uEuler,(sin((D*w+t*phase))-1.0));
-    return a*ePow;
+    return a*sin((D*w+t*phase));
 }
 
 float getNormal(float a,float D, float angle,float w,float t,float speed,float phase){
-    float ePow= pow(uEuler,(sin((D*w+t*phase))-1.0));
-
-    return w*angle*a*ePow*cos(D*w+t*phase);
+    return w*angle*a*cos(D*w+t*phase);
 }
 
 void main()
@@ -43,9 +38,9 @@ void main()
     vec2 uBigWavesFrequency= vec2(2.0,1.0);
     float uBigWavesSpeed= 0.2;
     float wavelength=1.0;
-    float a= 1.0;               //height muliplier. amplitude
+    float a= 0.1;               //height muliplier. amplitude
     float w=((3.14*2.0)/wavelength);     //frequency
-    float speed= 0.3;
+    float speed= 0.4;
     float phase= speed*((3.14*2.0)/wavelength);
     float elevation=0.0;
     float dx=0.0;
@@ -53,24 +48,22 @@ void main()
 
 
     //fractional brownian motion
-    float octaves=uOctaves;
-    vec2 directionVec= texture(uDirection,vec2(0.0,0.0)).xy;
-    w*=0.1;
-    a=0.4;
+    float octaves=5.0;
+    vec2 directionVec= texture(uDirection,vec2(0.0,1.0)).xy;
+    w*=0.4;
     for(float i=0.0; i<octaves; i++)
     {
         float D= getDirection(directionVec,modelPosition);
-        D+=(dx-dy);
-        elevation+= getElevation(a,D,w,-uTime,speed,phase);
-        dx+= getNormal(a, D, directionVec.x,w,-uTime,speed,phase);
-        dy+= getNormal(a, D, directionVec.y,w,-uTime,speed,phase);
 
-        a*=0.72;
-        // a*=0.6;/
-        w*=1.18;
+        elevation+= getElevation(a,D,w,uTime,speed,phase);
+        dx+= getNormal(a, D, directionVec.x,w,uTime,speed,phase);
+        dy+= getNormal(a, D, directionVec.y,w,uTime,speed,phase);
+
+        a*=0.5;
+        w*=2.0;
         // speed*=0.2;
 
-        directionVec= texture(uDirection,vec2(i/octaves,0.0)).xy;
+        directionVec= texture(uDirection,vec2(i,1.0)).xy;
 
     }
 
@@ -88,5 +81,4 @@ void main()
     //varyings
     vPosition=modelPosition.xyz;
     vNormal=(modelMatrix*vec4(calculatedNormal,0.0)).xyz;
-    vColor=texture(uDirection,vec2(-1.0,0.0));
 }
