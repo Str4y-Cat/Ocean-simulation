@@ -1,0 +1,10 @@
+color scheme
+
+https://www.realtimecolors.com/?colors=e6eeee-060d0d-99dde0-18888e-2be7f1&fonts=Poppins-Poppins
+
+
+https://www.shadertoy.com/view/XlX3RB
+https://www.shadertoy.com/view/dtXGW4
+
+https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
+https://www.youtube.com/watch?v=PH9q0HNBjT4
