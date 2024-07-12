@@ -2,10 +2,17 @@ uniform float uTime;
 uniform sampler2D uDirection;
 uniform float uEuler;
 uniform float uOctaves;
+uniform float uAmplitude;
+uniform float uFrequency;
+uniform float uLacunarity;
+uniform float uGain;
+
+
 varying float vElevation;
 varying vec3 vPosition;
 varying vec3 vNormal;
 varying vec4 vColor;
+varying vec3 vWorldPosition;
 // varying float vTime;
 
 // #include ./includes/perlinClassic3D.glsl
@@ -50,13 +57,15 @@ void main()
     float elevation=0.0;
     float dx=0.0;
     float dy=0.0;
+    float lacunarity=uLacunarity;
+    float gain= uGain;
 
 
     //fractional brownian motion
     float octaves=uOctaves;
     vec2 directionVec= texture(uDirection,vec2(0.0,0.0)).xy;
-    w*=0.1;
-    a=0.4;
+    w*= uFrequency;
+    a= uAmplitude;
     // a=0.2;
     // a=0.0;
     for(float i=0.0; i<octaves; i++)
@@ -67,10 +76,10 @@ void main()
         dx+= getNormal(a, D, directionVec.x,w,-uTime,speed,phase);
         dy+= getNormal(a, D, directionVec.y,w,-uTime,speed,phase);
 
-        a*=0.72;
+        a*=lacunarity;
         // a*=0.78;
-        // a*=0.6;/
-        w*=1.18;
+        // a*=0.0;
+        w*=gain;
         // w*=1.28;
         // speed*=0.2;
 
@@ -91,6 +100,7 @@ void main()
 
     //varyings
     vPosition=modelPosition.xyz;
+    vWorldPosition = vec3(-modelPosition.z, modelPosition.y, -modelPosition.x);
     vNormal=(modelMatrix*vec4(calculatedNormal,0.0)).xyz;
     vColor=texture(uDirection,vec2(-1.0,0.0));
 }

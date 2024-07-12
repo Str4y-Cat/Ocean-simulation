@@ -9,6 +9,8 @@ uniform samplerCube uEnvironmentTexture;
 varying vec3 vPosition;
 varying vec3 vNormal;
 varying vec4 vColor;
+varying vec3 vWorldPosition;
+
 
 #include ../lights/ambient.glsl
 // #include ../lights/directional.glsl
@@ -20,59 +22,36 @@ void main()
 {
     // float positionColor=smoothstep(-0.5,1.0,vPosition.y);
     vec3 normal= normalize(vNormal);
-
-    
-    vec3 colorSea= vec3(0.1,0.3,0.8);
+    vec3 colorSea= vec3(1.0,1.0,1.0);
     vec3 viewDirection= normalize(vPosition-cameraPosition);
 
 
     //world reflecions
-    vec3 reflectionDirection= reflect(viewDirection,normal);
-    // vec4 color= textureCube(uEnvironmentTexture,reflectionDirection);
+    vec3 viewDirection_flippedx= reflect(viewDirection,vec3(1.0,0.0,0.0));
+    vec3 reflectionDirection= reflect(viewDirection_flippedx,normal);
+    vec3 environmentLight=textureCube(uEnvironmentTexture,reflectionDirection).xyz;
+    
+    float fresnel=1.0+ dot(viewDirection,normal);
+    fresnel= pow(fresnel,1.0);
+    
 
     //light
     vec3 light= vec3(0.0);
-    // light+=ambientLight(
-    //     normalize(vec3(8.0,12.0,146.0)),  //light color
-    //     1.0        //light intensity
-    // );
+    light+=ambientLight(
+        vec3(0.0,0.0,0.2),  //light color
+        0.5        //light intensity
+    );
+    vec3 finalColor=mix(light,environmentLight,fresnel);
+    
 
-
-    // light+= pointLight(
-    //     vec3(1.0,1.0,1.0),  //light color
-    //     1.0,        //light intensity
-    //     vNormal,    //model normals
-    //     vec3(0,5.0,0),   //light positions
-    //     viewDirection,
-    //     50.0,
-    //     vPosition,
-    //     0.0
-    //     );
-
-    // light+= directionalLight(
-    //     vec3(1.0,1.0,1.0),  //light color
-    //     1.0,        //light intensity
-    //     normal,    //model normals
-    //     vec3(0.0,-2.0,6.0),   //light positions
-    //     viewDirection,
-    //     20.0
-    //     );
-
-    // colorSea*=light;
-    // colorSea*=
-    // positionColor=mod(positionColor,1.0);
-    //final color
-
-    // gl_FragColor = vec4(colorSea, 1.0);
-    // gl_FragColor = vec4(vColor.xyz, 1.0);
-    // vec3 normal=
 
     // gl_FragColor = vec4(normal, 1.0);
+    // gl_FragColor = vec4(0.0,normal.g,0.0, 1.0);
+    // gl_FragColor = vec4(vec3(light), 1.0);
     // vec3 textureColor=(textureCube(uEnvironmentTexture,reflectionDirection).xyz);
     // gl_FragColor = vec4(textureCube(uEnvironmentTexture,reflectionDirection),1.0);
-    vec4 temp=textureCube(uEnvironmentTexture,-reflectionDirection);
     // temp=normalize(temp);
-    gl_FragColor = vec4(temp);
+    gl_FragColor = vec4(finalColor,1.0);
 
     #include <tonemapping_fragment>
     #include <colorspace_fragment>

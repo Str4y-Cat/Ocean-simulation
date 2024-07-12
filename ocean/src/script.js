@@ -23,30 +23,21 @@ const debug={}
 //textures
 const cubeTextureLoader= new THREE.CubeTextureLoader()
 const environmentMap= cubeTextureLoader.load([
-    '/environments/sunset2/px.png',
-    '/environments/sunset2/nx.png',
-    '/environments/sunset2/py.png',
-    '/environments/sunset2/ny.png',
-    '/environments/sunset2/pz.png',
-    '/environments/sunset2/nz.png',]
+    '/environments/clouds1/px.png',
+    '/environments/clouds1/nx.png',
+    '/environments/clouds1/py.png',
+    '/environments/clouds1/ny.png',
+    '/environments/clouds1/pz.png',
+    '/environments/clouds1/nz.png',]
 )
-console.log(environmentMap)
+
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
 scene.background=environmentMap
-worldValues.backgroundRotation=1.8593
-console.log(scene)
-scene.backgroundRotation.y=worldValues.backgroundRotation*Math.PI
-// scene.backgroundRotation=worldValues.backgroundRotation
-gui.add(worldValues,'backgroundRotation').min(0).max(2).step(0.0001).onChange((r)=>{
-    scene.backgroundRotation.y= r*Math.PI
-})
 
-// Loaders
-// const gltfLoader = new GLTFLoader()
 
 /**
  * Sizes
@@ -80,7 +71,7 @@ window.addEventListener('resize', () =>
 // Base camera
 const camera = new THREE.PerspectiveCamera(25, sizes.width / sizes.height, 0.1, 200)
 camera.position.x = 25
-camera.position.y = 14
+camera.position.y = 24
 camera.position.z = 25
 scene.add(camera)
 
@@ -131,7 +122,10 @@ const waterGeometry = new THREE.PlaneGeometry(64, 64, 1024, 1024)
 
 
 // Material
-
+worldValues.amplitude=0.4;
+worldValues.frequency=0.1;
+worldValues.lacunarity=0.72;
+worldValues.gain=1.18;
 
 const waterMaterial = new THREE.ShaderMaterial({
     vertexShader: waterVertexShader,
@@ -143,16 +137,26 @@ const waterMaterial = new THREE.ShaderMaterial({
         uDirection:{value:directions},
         uEuler:{value:Math.E},
         uOctaves:{value:1},
-        uEnvironmentTexture:{value:environmentMap}
+        uEnvironmentTexture:{value:environmentMap},
+        uAmplitude:{value:worldValues.amplitude},
+        uFrequency:{value:worldValues.frequency},
+        uLacunarity:{value:worldValues.lacunarity},
+        uGain:{value:worldValues.gain},
 
         
     }
 }) 
 
-gui.add(waterMaterial.uniforms.uOctaves,'value').min(1).max(32).step(1).name("Octaves")
+gui.add(waterMaterial.uniforms.uOctaves,'value').min(1).max(64).step(1).name("Octaves")
+gui.add(waterMaterial.uniforms.uAmplitude,'value').min(0).max(2).step(0.0001).name("Amplitude")
+gui.add(waterMaterial.uniforms.uFrequency,'value').min(0).max(2).step(0.0001).name("Frequency")
+gui.add(waterMaterial.uniforms.uLacunarity,'value').min(0).max(2).step(0.0001).name("Lacunarity")
+gui.add(waterMaterial.uniforms.uGain,'value').min(0).max(2).step(0.0001).name("Gain")
+
 
 // Mesh
 const water = new THREE.Mesh(waterGeometry, waterMaterial)
+// water.position.y+=10
 water.rotation.x = - Math.PI * 0.5
 
 scene.add(water)
@@ -216,7 +220,7 @@ const sphereMirror = new THREE.Mesh(
 )
 // sphereMirror.position.x = - 3
 sphereMirror.position.y =  3
-scene.add(sphereMirror)
+// scene.add(sphereMirror)
 
 const docehedron = new THREE.Mesh(
     new THREE.DodecahedronGeometry(),
@@ -238,7 +242,7 @@ scene.add(docehedron)
 
 const axisHelper= new THREE.AxesHelper()
 
-// scene.add(axisHelper)
+scene.add(axisHelper)
 
 // directionalLightHelper.material.color.setRGB(0.1,0.1,1)
 // directionalLightHelper.material.side= THREE.DoubleSide
