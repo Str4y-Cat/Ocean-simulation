@@ -1,4 +1,5 @@
 uniform vec3 uColor;
+uniform samplerCube uEnvironment;
 
 varying vec3 vNormal;
 varying vec3 vPosition;
@@ -11,9 +12,12 @@ varying vec3 vPosition;
 void main()
 {
     vec3 color = uColor;
+    vec3 normal= normalize(vNormal);
     vec3 viewDirection= normalize(vPosition-cameraPosition);
     // vec3 lig= normalize(vPosition-cameraPosition);
-
+    vec3 reflectionDirection= reflect(viewDirection,normal);
+    vec4 temp=textureCube(uEnvironment,reflectionDirection);
+    // temp=normalize(temp);
     // vec3 light= vec3(0.0);
     // light+= ambientLight(
     //     vec3(1.0),  //light color
@@ -52,8 +56,10 @@ void main()
     
     // color*=light;
     // Final color
-    gl_FragColor = vec4(color, 1.0);
-    gl_FragColor = vec4(vNormal, 1.0);
+    // gl_FragColor = vec4(color, 1.0);
+    // gl_FragColor = vec4(vNormal, 1.0);
+    gl_FragColor = vec4(temp);
+
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
 }

@@ -57,6 +57,8 @@ void main()
     vec2 directionVec= texture(uDirection,vec2(0.0,0.0)).xy;
     w*=0.1;
     a=0.4;
+    // a=0.2;
+    // a=0.0;
     for(float i=0.0; i<octaves; i++)
     {
         float D= getDirection(directionVec,modelPosition);
@@ -66,8 +68,10 @@ void main()
         dy+= getNormal(a, D, directionVec.y,w,-uTime,speed,phase);
 
         a*=0.72;
+        // a*=0.78;
         // a*=0.6;/
         w*=1.18;
+        // w*=1.28;
         // speed*=0.2;
 
         directionVec= texture(uDirection,vec2(i/octaves,0.0)).xy;

@@ -44,11 +44,11 @@ function randomDirection(value,varience)
     // {
 
     // }
-    console.log(value)
+    // console.log(value)
     const direction=(new THREE.Vector2(Math.cos(value*Math.PI),Math.sin(value*Math.PI)))
     // console.log(`direction:`)
     direction.normalize()
-    console.log(direction)
+    // console.log(direction)
     // const color = new THREE.Color();
 
     return direction

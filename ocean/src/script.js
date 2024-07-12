@@ -10,6 +10,8 @@ import waterFragmentShader from './shaders/water/fragment.glsl'
 import shadingVertexShader from './shaders/test/vertex.glsl'
 import shadingFragmentShader from './shaders/test/fragment.glsl'
 
+import envVertexShader from './shaders/environment/vertex.glsl'
+import envFragmentShader from './shaders/environment/fragment.glsl'
 
 /**
  * Base
@@ -21,18 +23,27 @@ const debug={}
 //textures
 const cubeTextureLoader= new THREE.CubeTextureLoader()
 const environmentMap= cubeTextureLoader.load([
-    '/environmentMaps/0/px.png',
-    '/environmentMaps/0/nx.png',
-    '/environmentMaps/0/py.png',
-    '/environmentMaps/0/ny.png',
-    '/environmentMaps/0/pz.png',
-    '/environmentMaps/0/nz.png',]
+    '/environments/sunset2/px.png',
+    '/environments/sunset2/nx.png',
+    '/environments/sunset2/py.png',
+    '/environments/sunset2/ny.png',
+    '/environments/sunset2/pz.png',
+    '/environments/sunset2/nz.png',]
 )
+console.log(environmentMap)
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+scene.background=environmentMap
+worldValues.backgroundRotation=1.8593
+console.log(scene)
+scene.backgroundRotation.y=worldValues.backgroundRotation*Math.PI
+// scene.backgroundRotation=worldValues.backgroundRotation
+gui.add(worldValues,'backgroundRotation').min(0).max(2).step(0.0001).onChange((r)=>{
+    scene.backgroundRotation.y= r*Math.PI
+})
 
 // Loaders
 // const gltfLoader = new GLTFLoader()
@@ -67,7 +78,7 @@ window.addEventListener('resize', () =>
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(25, sizes.width / sizes.height, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(25, sizes.width / sizes.height, 0.1, 200)
 camera.position.x = 25
 camera.position.y = 14
 camera.position.z = 25
@@ -101,7 +112,8 @@ const directions=directionTexture(preferedDirection,2,64)
 console.log(directions)
 const coneGeometry = new THREE.ConeGeometry( 0.1, 1, 3 ); 
 const coneMaterial = new THREE.MeshBasicMaterial( {color: "red"} );
-const cone = new THREE.Mesh(coneGeometry, coneMaterial ); scene.add( cone );
+const cone = new THREE.Mesh(coneGeometry, coneMaterial ); 
+// scene.add( cone );
 cone.position.y=3;
 // cone.rotation.x=2
 // cone.rotation.z=2
@@ -130,11 +142,9 @@ const waterMaterial = new THREE.ShaderMaterial({
         uTime: { value: 0 },
         uDirection:{value:directions},
         uEuler:{value:Math.E},
-        uOctaves:{value:1}
-        // uWaveAngle1:{value: setAngle(0)},
-        // uWaveAngle2:{value: setAngle(0)},
-        // uWaveAngle3:{value: setAngle(0)},
-        // uWaveAngle4:{value: setAngle(0)}
+        uOctaves:{value:1},
+        uEnvironmentTexture:{value:environmentMap}
+
         
     }
 }) 
@@ -193,6 +203,21 @@ sphere.position.x = - 3
 sphere.position.y =  3
 // scene.add(sphere)
 
+const sphereMirror = new THREE.Mesh(
+    new THREE.SphereGeometry(),
+    new THREE.ShaderMaterial({
+        vertexShader: shadingVertexShader,
+        fragmentShader: shadingFragmentShader,
+        uniforms:
+        {
+            uEnvironment: new THREE.Uniform(environmentMap),
+        }
+    })
+)
+// sphereMirror.position.x = - 3
+sphereMirror.position.y =  3
+scene.add(sphereMirror)
+
 const docehedron = new THREE.Mesh(
     new THREE.DodecahedronGeometry(),
     material
@@ -213,7 +238,7 @@ scene.add(docehedron)
 
 const axisHelper= new THREE.AxesHelper()
 
-scene.add(axisHelper)
+// scene.add(axisHelper)
 
 // directionalLightHelper.material.color.setRGB(0.1,0.1,1)
 // directionalLightHelper.material.side= THREE.DoubleSide
@@ -261,6 +286,34 @@ gui.add(debug,'oco').onChange(bool=>
 // directionalPointHelper2.position.set(2,2,2)
 
 // scene.add(directionalPointHelper2)
+
+
+// //#region environment map
+
+// // geometry
+// var envGeometry = new THREE.OctahedronGeometry(100, 5);
+
+// // material
+// var envMaterial = new THREE.ShaderMaterial({
+    
+//     side: THREE.DoubleSide,
+//     uniforms: {
+//         uEnvironment: {
+//             value: environmentMap
+//         }
+//     },
+//     vertexShader: envVertexShader,
+//     fragmentShader: envFragmentShader,
+// });
+
+// // mesh
+// const envMesh = new THREE.Mesh(envGeometry, envMaterial);
+// scene.add(envMesh);
+
+// //#endregion
+
+
+
 
 /**
  * Animate
