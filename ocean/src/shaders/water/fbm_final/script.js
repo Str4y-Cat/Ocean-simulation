@@ -220,20 +220,7 @@ const sphereMirror = new THREE.Mesh(
 )
 // sphereMirror.position.x = - 3
 sphereMirror.position.y =  3
-sphereMirror.visible=false
-debug.sphere=false
-gui.add(debug,'sphere').onChange(bool=>
-{
-    if(bool)
-    {
-        sphereMirror.visible=true
-    }
-    else{
-        sphereMirror.visible=false
-    }
-}
-)
-scene.add(sphereMirror)
+// scene.add(sphereMirror)
 
 const docehedron = new THREE.Mesh(
     new THREE.DodecahedronGeometry(),
@@ -248,22 +235,21 @@ scene.add(docehedron)
 /**
  * light helpers
  */
+// const directionalLightHelper= new THREE.Mesh(
+//     new THREE.PlaneGeometry(),
+//     new THREE.MeshBasicMaterial()
+// )
 
 const axisHelper= new THREE.AxesHelper()
-axisHelper.visible=false
+
 scene.add(axisHelper)
-debug.axis=false
-gui.add(debug,'axis').onChange(bool=>
-{
-    if(bool)
-    {
-        axisHelper.visible=true
-    }
-    else{
-        axisHelper.visible=false
-    }
-}
-)
+
+// directionalLightHelper.material.color.setRGB(0.1,0.1,1)
+// directionalLightHelper.material.side= THREE.DoubleSide
+// directionalLightHelper.position.set(0,0,3)
+
+// scene.add(directionalLightHelper)
+
 
 
 const PointHelper= new THREE.Mesh(
