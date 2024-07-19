@@ -3,6 +3,7 @@
 // uniform float uColorOffset;
 // uniform float uColorMultiplier;
 uniform float uTime;
+uniform float uFresnelPow;
 uniform samplerCube uEnvironmentTexture;
 
 // varying float vElevation;
@@ -35,7 +36,8 @@ void main()
     
     float fresnel=1.0+ dot(viewDirection,normal);
     // fresnel=abs(fresnel);
-    fresnel= pow(fresnel,5.0);
+    fresnel= pow(fresnel,uFresnelPow);
+
     // fresnel=1.0;
     
 

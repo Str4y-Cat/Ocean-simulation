@@ -1,4 +1,9 @@
 import * as THREE from 'three'
+import gsap from 'gsap'
+import { CustomEase } from "gsap/CustomEase";
+import { ExpoScaleEase } from "gsap/EasePack";
+
+
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import {directionTexture} from './utils/TextureMaker'
@@ -20,16 +25,20 @@ import envFragmentShader from './shaders/environment/fragment.glsl'
 const gui = new GUI()
 const worldValues = {}
 const debug={}
+var random = gsap.utils.random(["sunset","sunset2","sunset3","sunset4","sunset5","sunset6","sunset7","clear","clouds1","clouds2"], true);
+const path= random()
+
 //textures
 const cubeTextureLoader= new THREE.CubeTextureLoader()
 const environmentMap= cubeTextureLoader.load([
-    '/environments/sunset6/px.png',
-    '/environments/sunset6/nx.png',
-    '/environments/sunset6/py.png',
-    '/environments/sunset6/ny.png',
-    '/environments/sunset6/pz.png',
-    '/environments/sunset6/nz.png',]
+    `/environments/${path}/px.png`,
+    `/environments/${path}/nx.png`,
+    `/environments/${path}/py.png`,
+    `/environments/${path}/ny.png`,
+    `/environments/${path}/pz.png`,
+    `/environments/${path}/nz.png`,]
 )
+
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -37,6 +46,8 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 scene.background=environmentMap
+
+console.log(scene.background)
 // scene.fog = new THREE.Fog(new THREE.Color('#ffffff'),1,2);
 
 
@@ -71,14 +82,14 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(25, sizes.width / sizes.height, 0.1, 200)
-camera.position.x = 25
-camera.position.y = 24
-camera.position.z = 25
+// camera.position.x = 25
+// camera.position.y = 24
+// camera.position.z = 25
 scene.add(camera)
 
 // Controls
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
+// const controls = new OrbitControls(camera, canvas)
+// controls.enableDamping = true
 
 /**
  * Renderer
@@ -123,7 +134,7 @@ const waterGeometry = new THREE.PlaneGeometry(64, 64, 512, 512)
 
 
 // Material
-worldValues.amplitude=0.4;
+worldValues.amplitude=0.0;
 worldValues.frequency=0.1;
 worldValues.lacunarity=0.72;
 worldValues.gain=1.18;
@@ -138,12 +149,13 @@ const waterMaterial = new THREE.ShaderMaterial({
         uTime: { value: 0 },
         uDirection:{value:directions},
         uEuler:{value:Math.E},
-        uOctaves:{value:1},
+        uOctaves:{value:32},
         uEnvironmentTexture:{value:environmentMap},
         uAmplitude:{value:worldValues.amplitude},
         uFrequency:{value:worldValues.frequency},
         uLacunarity:{value:worldValues.lacunarity},
         uGain:{value:worldValues.gain},
+        uFresnelPow: new THREE.Uniform(5)
 
         
     }
@@ -154,6 +166,7 @@ gui.add(waterMaterial.uniforms.uAmplitude,'value').min(0).max(2).step(0.0001).na
 gui.add(waterMaterial.uniforms.uFrequency,'value').min(0).max(2).step(0.0001).name("Frequency")
 gui.add(waterMaterial.uniforms.uLacunarity,'value').min(0).max(2).step(0.0001).name("Lacunarity")
 gui.add(waterMaterial.uniforms.uGain,'value').min(0).max(2).step(0.0001).name("Gain")
+gui.add(waterMaterial.uniforms.uFresnelPow,'value').min(0).max(10).step(0.0001).name("Fresnel Pow")
 
 
 // Mesh
@@ -294,16 +307,7 @@ gui.add(debug,'axis').onChange(bool=>
 )
 
 
-const PointHelper= new THREE.Mesh(
-    new THREE.IcosahedronGeometry(0.1,2),
-    new THREE.MeshBasicMaterial()
-)
 
-PointHelper.material.color.setRGB(1,1,1)
-// directionalLightHelper.material.side= THREE.DoubleSide
-PointHelper.position.set(0,5,0)
-
-scene.add(PointHelper)
 debug.oco=false
 gui.add(debug,'oco').onChange(bool=>
 {
@@ -322,43 +326,107 @@ gui.add(debug,'oco').onChange(bool=>
 }
 )
 
-// const directionalPointHelper2= new THREE.Mesh(
-//     new THREE.IcosahedronGeometry(0.1,2),
-//     new THREE.MeshBasicMaterial()
-// )
 
-// directionalPointHelper2.material.color.setRGB(0.1,1.0,0.5)
-// // directionalLightHelper.material.side= THREE.DoubleSide
-// directionalPointHelper2.position.set(2,2,2)
+//gsap
 
-// scene.add(directionalPointHelper2)
+camera.position.y=20
+camera.rotation.x= -Math.PI/2 
+camera.rotation.y= -0.17
+gui.add(camera.rotation,'x').min(-6).max(6).step(0.01)
+gui.add(camera.rotation,'y').min(-6).max(12).step(0.001)
+gui.add(camera.rotation,'z').min(0).max(6).step(0.01)
+gui.add(camera.position,'x').min(0).max(100).step(0.01).name('cameraPosition x')
+gui.add(camera.position,'y').min(0).max(100).step(0.01).name('cameraPosition y')
+gui.add(camera.position,'z').min(0).max(100).step(0.01).name('cameraPosition z')
 
+gsap.registerPlugin(CustomEase);
+gsap.registerPlugin(ExpoScaleEase,CustomEase);
 
-// //#region environment map
+// const moveLocation=()=>
+//     {
+//         //z=28
+//         //y=3
+//         gsap.to(camera.position,{
+//             z:28,
+//             duration:2.5,
+//             ease: "sine.inOut",
+            
+//         })
+//         gsap.to(camera.position,{
+//             y:3,
+//             // ease: "back.in(1.7)",
+//             ease: CustomEase.create("custom", "M0,0 C0,0 0.045,-0.015 0.065,-0.028 0.107,-0.056 0.199,-0.168 0.242,-0.185 0.259,-0.192 0.282,-0.189 0.295,-0.182 0.309,-0.175 0.335,-0.146 0.347,-0.126 0.362,-0.102 0.386,-0.04 0.397,-0.007 0.41,0.029 0.428,0.1 0.44,0.154 0.466,0.279 0.549,0.573 0.59,0.687 0.7,1 0.814,1.074 0.94,1.024 1,1 1,1 1,1 "),
+//             duration:2.5,
+//         })
 
-// // geometry
-// var envGeometry = new THREE.OctahedronGeometry(100, 5);
+//     }
+// debug.moveLocation=moveLocation
+debug.reset=()=>{
+    camera.rotation.x=-Math.PI/2 
+    camera.position.z=0
+    camera.position.y=20
+}
 
-// // material
-// var envMaterial = new THREE.ShaderMaterial({
     
-//     side: THREE.DoubleSide,
-//     uniforms: {
-//         uEnvironment: {
-//             value: environmentMap
-//         }
-//     },
-//     vertexShader: envVertexShader,
-//     fragmentShader: envFragmentShader,
-// });
 
-// // mesh
-// const envMesh = new THREE.Mesh(envGeometry, envMaterial);
-// scene.add(envMesh);
+// const rotateCamera=()=>
+//     {
+//         //x=0
+//         gsap.to(camera.rotation,{
+//             x:0,
+//         })
 
-// //#endregion
+//     }
+    const letThereBeWaves=()=>
+    {
+        gsap.to(waterMaterial.uniforms.uAmplitude,{
+            value:0.4,
+            duration:3,
+            
+        })
+        gsap.to(waterMaterial.uniforms.uFresnelPow,{
+            value:0.6,
+            duration:4,
+        })
+    }
+    debug.showWaves=letThereBeWaves
+    const move=()=>
+        {
+            gsap.to(waterMaterial.uniforms.uFresnelPow,{
+                value:5,
+                duration:5,
+                ease: "power3.inOut",
+            })
+            gsap.to(camera.position,{
+                z:28,
+                duration:6,
+                ease: "power2.inOut",
+                
+            })
+            gsap.to(camera.position,{
+                y:3,
+                ease: "sine.inOut",
+                // ease: CustomEase.create("custom", "M0,0 C0,0 0.045,-0.015 0.065,-0.028 0.107,-0.056 0.199,-0.168 0.242,-0.185 0.259,-0.192 0.282,-0.189 0.295,-0.182 0.309,-0.175 0.335,-0.146 0.347,-0.126 0.362,-0.102 0.386,-0.04 0.397,-0.007 0.41,0.029 0.428,0.1 0.44,0.154 0.466,0.279 0.549,0.573 0.59,0.687 0.7,1 0.814,1.074 0.94,1.024 1,1 1,1 1,1 "),
+                duration:3,
+            })
 
+            gsap.to(camera.rotation,{
+                ease: "power2.inOut",
+                duration:4,
+                x:0,
+            })
+        }
+    debug.move=move
+    gui.add(debug,'move')
+    gui.add(debug,'reset')
+    gui.add(debug,'showWaves')
+// camera.rotation.y=3
+// camera.rotation.x=2
+// camera.rotation.z=3
+// camera.rotation.y=3
 
+// camera.rotation.set(0,3,0)
+// camera.rotation.y=0
 
 
 /**
@@ -382,7 +450,7 @@ const tick = () =>
     
 
     // Update controls
-    controls.update()
+    // controls.update()
 
     // Render
     renderer.render(scene, camera)
