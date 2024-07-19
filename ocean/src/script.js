@@ -23,12 +23,12 @@ const debug={}
 //textures
 const cubeTextureLoader= new THREE.CubeTextureLoader()
 const environmentMap= cubeTextureLoader.load([
-    '/environments/clouds1/px.png',
-    '/environments/clouds1/nx.png',
-    '/environments/clouds1/py.png',
-    '/environments/clouds1/ny.png',
-    '/environments/clouds1/pz.png',
-    '/environments/clouds1/nz.png',]
+    '/environments/sunset6/px.png',
+    '/environments/sunset6/nx.png',
+    '/environments/sunset6/py.png',
+    '/environments/sunset6/ny.png',
+    '/environments/sunset6/pz.png',
+    '/environments/sunset6/nz.png',]
 )
 
 // Canvas
@@ -37,6 +37,7 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 scene.background=environmentMap
+// scene.fog = new THREE.Fog(new THREE.Color('#ffffff'),1,2);
 
 
 /**
@@ -118,7 +119,7 @@ cone.rotation.z=(preferedDirection*-Math.PI)-Math.PI/2
 
 
 
-const waterGeometry = new THREE.PlaneGeometry(64, 64, 1024, 1024)
+const waterGeometry = new THREE.PlaneGeometry(64, 64, 512, 512)
 
 
 // Material
@@ -130,6 +131,7 @@ worldValues.gain=1.18;
 const waterMaterial = new THREE.ShaderMaterial({
     vertexShader: waterVertexShader,
     fragmentShader: waterFragmentShader,
+    side:THREE.DoubleSide,
     // wireframe:true,
     uniforms:
     {
@@ -156,10 +158,36 @@ gui.add(waterMaterial.uniforms.uGain,'value').min(0).max(2).step(0.0001).name("G
 
 // Mesh
 const water = new THREE.Mesh(waterGeometry, waterMaterial)
+const water2 = new THREE.Mesh(waterGeometry, waterMaterial)
+const water3 = new THREE.Mesh(waterGeometry, waterMaterial)
+// const water4 = new THREE.Mesh(waterGeometry, waterMaterial)
+// const water5 = new THREE.Mesh(waterGeometry, waterMaterial)
+// const water = new THREE.Mesh(waterGeometry, new THREE.MeshBasicMaterial({color:'red'}))
 // water.position.y+=10
 water.rotation.x = - Math.PI * 0.5
+water2.position.z-=32
+water2.rotation.x = - Math.PI * 0.5
 
-scene.add(water)
+water3.position.z-=64
+water3.rotation.x = - Math.PI * 0.5
+
+// water4.position.z-=32
+// water4.rotation.x = - Math.PI * 0.5
+
+// water5.position.z+=32
+// water5.rotation.x = - Math.PI * 0.5
+
+
+scene.add(water,water2,water3)
+
+const waterPlaneFolder= gui.addFolder('water Plane')
+// water.position.x+=1
+console.log(water.position.y)
+waterPlaneFolder.add(water.position,'y').min(0).max(100).step(0.001)
+waterPlaneFolder.add(water.position,'x').min(0).max(6).step(0.001)
+// waterPlaneFolder.add(water.rotation,'z').min(0).max(6).step(0.001)
+// waterPlaneFolder.add(water.rotation,'y').min(2*Math.PI).max(2*Math.PI).step(0.001)
+// waterPlaneFolder.add(water.rotation,'z').min(2*Math.PI).max(2*Math.PI).step(0.001)
 
 //#endregion
 
@@ -351,11 +379,7 @@ const tick = () =>
     //     suzanne.rotation.y = elapsedTime * 0.2
     // }
 
-    sphere.rotation.x = - elapsedTime * 0.1
-    sphere.rotation.y = elapsedTime * 0.2
-
-    torusKnot.rotation.x = - elapsedTime * 0.1
-    torusKnot.rotation.y = elapsedTime * 0.2
+    
 
     // Update controls
     controls.update()

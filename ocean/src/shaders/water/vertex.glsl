@@ -81,7 +81,7 @@ void main()
         // a*=0.0;
         w*=gain;
         // w*=1.28;
-        // speed*=0.2;
+        speed*=0.1;
 
         directionVec= texture(uDirection,vec2(i/octaves,0.0)).xy;
 
@@ -91,7 +91,7 @@ void main()
     vec3 T=vec3(1,0,dx);
     vec3 B=vec3(0,1,dy);
     vec3 calculatedNormal= vec3(-dx,-dy,1.0);            
-    modelPosition.y=elevation;
+    modelPosition.y+=elevation;
 
     //final position
     vec4 viewPosition = viewMatrix * modelPosition;

@@ -23,12 +23,12 @@ const debug={}
 //textures
 const cubeTextureLoader= new THREE.CubeTextureLoader()
 const environmentMap= cubeTextureLoader.load([
-    '/environments/clouds1/px.png',
-    '/environments/clouds1/nx.png',
-    '/environments/clouds1/py.png',
-    '/environments/clouds1/ny.png',
-    '/environments/clouds1/pz.png',
-    '/environments/clouds1/nz.png',]
+    '/environments/sunset3/px.png',
+    '/environments/sunset3/nx.png',
+    '/environments/sunset3/py.png',
+    '/environments/sunset3/ny.png',
+    '/environments/sunset3/pz.png',
+    '/environments/sunset3/nz.png',]
 )
 
 // Canvas
@@ -158,6 +158,8 @@ gui.add(waterMaterial.uniforms.uGain,'value').min(0).max(2).step(0.0001).name("G
 const water = new THREE.Mesh(waterGeometry, waterMaterial)
 // water.position.y+=10
 water.rotation.x = - Math.PI * 0.5
+
+
 
 scene.add(water)
 

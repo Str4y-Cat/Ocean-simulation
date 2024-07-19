@@ -40,6 +40,8 @@ function randomDirection(value,varience)
     let randomValue= (Math.random()-0.5)*2
     //  randomValue= 0
     value+=randomValue*varience
+    value+=randomValue*varience
+    value=Math.random()*2
     // if(value>2 ||value<-2)
     // {
 

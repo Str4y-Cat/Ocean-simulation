@@ -27,12 +27,16 @@ void main()
 
 
     //world reflecions
-    vec3 viewDirection_flippedx= reflect(viewDirection,vec3(1.0,0.0,0.0));
+    // vec3 viewDirection_flippedx= reflect(viewDirection,vec3(1.0,0.0,0.0));
+    vec3 viewDirection_flippedx= viewDirection;
     vec3 reflectionDirection= reflect(viewDirection_flippedx,normal);
+    reflectionDirection=reflect(reflectionDirection,vec3(1.0,0.0,0.0));
     vec3 environmentLight=textureCube(uEnvironmentTexture,reflectionDirection).xyz;
     
     float fresnel=1.0+ dot(viewDirection,normal);
-    fresnel= pow(fresnel,1.0);
+    // fresnel=abs(fresnel);
+    fresnel= pow(fresnel,5.0);
+    // fresnel=1.0;
     
 
     //light
@@ -45,13 +49,17 @@ void main()
     
 
 
-    // gl_FragColor = vec4(normal, 1.0);
+    // gl_FragColor = vec4(vPosition, 1.0);
     // gl_FragColor = vec4(0.0,normal.g,0.0, 1.0);
+    // gl_FragColor = vec4(normal, 1.0);
     // gl_FragColor = vec4(vec3(light), 1.0);
+    // gl_FragColor = vec4(vec3(reflectionDirection), 1.0);
     // vec3 textureColor=(textureCube(uEnvironmentTexture,reflectionDirection).xyz);
     // gl_FragColor = vec4(textureCube(uEnvironmentTexture,reflectionDirection),1.0);
     // temp=normalize(temp);
     gl_FragColor = vec4(finalColor,1.0);
+    // gl_FragColor = vec4(environmentLight,1.0);
+    // gl_FragColor = vec4(vec3(fresnel),1.0);
 
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
