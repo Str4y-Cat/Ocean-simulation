@@ -3,6 +3,9 @@ import gsap from 'gsap'
 import { CustomEase } from "gsap/CustomEase";
 import { ExpoScaleEase } from "gsap/EasePack";
 
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/Addons.js'
+
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
@@ -25,7 +28,12 @@ import envFragmentShader from './shaders/environment/fragment.glsl'
 const gui = new GUI()
 const worldValues = {}
 const debug={}
-var random = gsap.utils.random(["sunset","sunset2","sunset3","sunset4","sunset5","sunset6","sunset7","clear","clouds1","clouds2"], true);
+// var random = gsap.utils.random(["sunset","sunset2","sunset3","sunset4","sunset5","sunset6","sunset7","clear","clouds1","clouds2"], true);
+const pathArr= ["sunset","sunset2","sunset3","sunset4","sunset5","sunset6","sunset7","clear","clouds1","clouds2","finals/sunset","finals/sunset2","finals/blue_sky3","finals/blue_sky6","finals/blue_sky7","finals/blue_sky9",
+    "finals/blue_sky10","finals/blue_sky12",]
+
+var random = gsap.utils.random(
+    pathArr, true);
 const path= random()
 
 //textures
@@ -39,6 +47,15 @@ const environmentMap= cubeTextureLoader.load([
     `/environments/${path}/nz.png`,]
 )
 
+// const environmentMap= cubeTextureLoader.load([
+//     `/environments/finals/${path}/px.png`,
+//     `/environments/finals/${path}/nx.png`,
+//     `/environments/finals/${path}/py.png`,
+//     `/environments/finals/${path}/ny.png`,
+//     `/environments/finals/${path}/pz.png`,
+//     `/environments/finals/${path}/nz.png`,]
+// )
+environmentMap.colorSpace=THREE.SRGBColorSpace
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -46,6 +63,7 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 scene.background=environmentMap
+scene.environment=environmentMap
 
 console.log(scene.background)
 // scene.fog = new THREE.Fog(new THREE.Color('#ffffff'),1,2);
@@ -88,8 +106,8 @@ const camera = new THREE.PerspectiveCamera(25, sizes.width / sizes.height, 0.1, 
 scene.add(camera)
 
 // Controls
-// const controls = new OrbitControls(camera, canvas)
-// controls.enableDamping = true
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
 
 /**
  * Renderer
@@ -142,7 +160,7 @@ worldValues.gain=1.18;
 const waterMaterial = new THREE.ShaderMaterial({
     vertexShader: waterVertexShader,
     fragmentShader: waterFragmentShader,
-    side:THREE.DoubleSide,
+    // side:THREE.DoubleSide,
     // wireframe:true,
     uniforms:
     {
@@ -325,13 +343,66 @@ gui.add(debug,'oco').onChange(bool=>
     }
 }
 )
+//text
+debug.textMetalness=0.287
+debug.textRoughness=0.004
+debug.textColor="#ffffff"
 
+// const fontLoader= new FontLoader()
+// fontLoader.load(
+//     "fonts/helvetiker_regular.typeface.json",
+//     (font)=>
+//     {
+//         const textGeometry= new TextGeometry(
+//             "Hey There",
+//             {
+//                 font:font,
+//                 size:0.5,
+//                 height:0.2,
+//                 curveSegments: 12,
+//                 // bevelEnabled:true,
+//                 // bevelThickness:0.03,
+//                 // bevelSize:0.02,
+//                 // bevelOffset:0,
+//                 // bevelSegments:3
+//             }
+//         )
+//         // const textFolder= gui.addFolder('Text')
+//         // console.log(textGeometry)
+//         // textFolder.add(textGeometry,'size').min(0).max(2).step(0.001)
+//         textGeometry.center()
+
+//         // const textMaterial= new THREE.MeshBasicMaterial()
+//         const textMaterial= new THREE.MeshStandardMaterial(
+//             {
+//                 color: debug.textColor,
+//                 metalness: debug.textMetalness,
+//                 roughness: debug.textRoughness,
+//                 // emissive:new THREE.Color('#ffffff'),
+//                 // emissiveIntensity:0.1
+//             }
+//         )
+//         const textFolder= gui.addFolder('Text')
+//         textFolder.addColor(debug,'textColor').onChange(color=>{textMaterial.color=new THREE.Color(color)})
+
+//         textFolder.add(textMaterial,'metalness').min(0).max(1).step(0.001)
+//         textFolder.add(textMaterial,'roughness').min(0).max(1).step(0.001)
+//         // gui.add(textMaterial,"wireframe")
+//         const textMesh= new THREE.Mesh(textGeometry,textMaterial)
+//         scene.add(textMesh)
+//         textMesh.position.y=3
+//         textMesh.position.z=20
+//         // textMesh.position.z=5
+
+
+//     }
+// )
 
 //gsap
 
 camera.position.y=20
 camera.rotation.x= -Math.PI/2 
-camera.rotation.y= -0.17
+// camera.rotation.y= -0.17
 gui.add(camera.rotation,'x').min(-6).max(6).step(0.01)
 gui.add(camera.rotation,'y').min(-6).max(12).step(0.001)
 gui.add(camera.rotation,'z').min(0).max(6).step(0.01)
@@ -362,7 +433,9 @@ gsap.registerPlugin(ExpoScaleEase,CustomEase);
 //     }
 // debug.moveLocation=moveLocation
 debug.reset=()=>{
-    camera.rotation.x=-Math.PI/2 
+    // camera.rotation.y=-Math.PI/2 
+
+    // camera.rotation.x=-Math.PI/2 
     camera.position.z=0
     camera.position.y=20
 }
@@ -404,7 +477,7 @@ debug.reset=()=>{
                 
             })
             gsap.to(camera.position,{
-                y:3,
+                y:2.79,
                 ease: "sine.inOut",
                 // ease: CustomEase.create("custom", "M0,0 C0,0 0.045,-0.015 0.065,-0.028 0.107,-0.056 0.199,-0.168 0.242,-0.185 0.259,-0.192 0.282,-0.189 0.295,-0.182 0.309,-0.175 0.335,-0.146 0.347,-0.126 0.362,-0.102 0.386,-0.04 0.397,-0.007 0.41,0.029 0.428,0.1 0.44,0.154 0.466,0.279 0.549,0.573 0.59,0.687 0.7,1 0.814,1.074 0.94,1.024 1,1 1,1 1,1 "),
                 duration:3,
@@ -450,7 +523,7 @@ const tick = () =>
     
 
     // Update controls
-    // controls.update()
+    controls.update()
 
     // Render
     renderer.render(scene, camera)
