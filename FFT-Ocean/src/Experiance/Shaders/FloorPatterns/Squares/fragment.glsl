@@ -32,9 +32,9 @@ void main()
     vec3 color = uColor;
     vec3 dotColor=vec3(0.0,0.0,0.0);
 
-    float falloff= distance(vPosition,cameraPosition);
+    float falloff= distance(vPosition,vec3(cameraPosition.x,0.0,cameraPosition.z));
     
-    falloff=1.0- smoothstep(2.0,100.0,falloff);
+    falloff=1.0- smoothstep(6.0,100.0,falloff);
     falloff= pow(falloff,5.0);
     //radius
     color= squares(

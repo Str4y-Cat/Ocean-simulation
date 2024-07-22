@@ -4,6 +4,7 @@ import Experience from "../Experiance";
 import Environment from "./Environment";
 import Floor from "./Floor";
 import Fox from "./Fox";
+import Ocean from "./Ocean";
 
 export default class World
 {
@@ -18,7 +19,10 @@ export default class World
             {
                 // console.log('resourcse are ready')
                 this.floor=new Floor()
-                this.fox=new Fox()
+
+
+                // this.fox=new Fox()
+                this.ocean=new Ocean()
                 this.environment=new Environment()
 
             })

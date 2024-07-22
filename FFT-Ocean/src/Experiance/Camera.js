@@ -26,7 +26,9 @@ export default class Camera
         //     100
         // )
         this.instance = new THREE.PerspectiveCamera(35, this.sizes.width / this.sizes.height, 0.1, 100)
-        this.instance.position.set(6, 4, 8)
+        this.instance.position.set(0, 3, 12)
+        
+        // console.log()
         this.scene.add(this.instance)
     }
 
@@ -34,6 +36,8 @@ export default class Camera
     {
         this.controls= new OrbitControls(this.instance, this.canvas)
         this.controls.enableDamping=true
+        const target=new THREE.Vector3(0,2,0)
+        this.controls.target=target
     }
 
     resize()

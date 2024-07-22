@@ -1,0 +1,18 @@
+references:
+
+https://gpuopen.com/gdc-presentations/2019/gdc-2019-agtd6-interactive-water-simulation-in-atlas.pdf
+https://www.slideshare.net/slideshow/an-introduction-to-realistic-ocean-rendering-through-fft-fabio-suriano-codemotion-rome-2017/74458025
+https://www.keithlantz.net/2011/10/ocean-simulation-part-one-using-the-discrete-fourier-transform/
+
+https://github.com/jbouny/fft-ocean/blob/master/js/shaders/FFTOceanShader.js
+
+fft code
+http://wwwa.pikara.ne.jp/okojisan/otfft-en/stockham1.html
+https://www.fftw.org/
+https://wikiwaves.org/Ocean-Wave_Spectra
+https://github.com/GarrettGunnell/Water/blob/main/Assets/Shaders/FFTWater.compute
+https://www.youtube.com/watch?v=kGEqaX4Y4bQ
+
+https://image.slidesharecdn.com/bfjwycbirgivtdjsarem-signature-88a884b8738c0ca30753e65a94b83fd4f9080b65e84a5b6375d092c41bd4ae03-poli-170405153121/75/An-introduction-to-Realistic-Ocean-Rendering-through-FFT-Fabio-Suriano-Codemotion-Rome-2017-26-2048.jpg
+https://www.slideshare.net/slideshow/an-introduction-to-realistic-ocean-rendering-through-fft-fabio-suriano-codemotion-rome-2017/74458025#19
+https://gpuopen.com/gdc-presentations/2019/gdc-2019-agtd6-interactive-water-simulation-in-atlas.pdf
