@@ -55,9 +55,9 @@ export default class OceanUtils
 
         ((a*(g**2))/w**5)*Math.exp(-(5/4)*(wp/w)**4)*Y**r
 
-        const resultPt1
-        const resultPt2
-        const resultPt3
+        // const resultPt1
+        // const resultPt2
+        // const resultPt3
         const result= ((a*(g**2))/w**5)*Math.exp(-(5/4)*(wp/w)**4)*Y**r
 
         console.log(r)

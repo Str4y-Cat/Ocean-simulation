@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 
 import Experience from "../Experiance";
-// import fragmentShader from '../Shaders/FloorPatterns/Dots/fragment.glsl'
-import fragmentShader from '../Shaders/FloorPatterns/Squares/fragment.glsl'
+import fragmentShader from '../Shaders/FloorPatterns/Dots/fragment.glsl'
+// import fragmentShader from '../Shaders/FloorPatterns/Squares/fragment.glsl'
 import vertexShader from '../Shaders/FloorPatterns/vertex.glsl'
 
 export default class Floor

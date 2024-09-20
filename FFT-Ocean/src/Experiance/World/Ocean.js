@@ -35,7 +35,7 @@ export default class Ocean
         // this.setMaterial()
         // this.setMesh()
         // this.setInitialSpectrumMaterial()
-        this.setSpectrumMaterial()
+        // this.setSpectrumMaterial()
         this.setGaussianTexture()
         this.setTestPlane()
     }
