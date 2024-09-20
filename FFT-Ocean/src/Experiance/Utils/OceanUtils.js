@@ -23,7 +23,7 @@ export default class OceanUtils
         for ( let i = 0; i < size; i ++ ) {
             const gaussian= this.gaussianRandom()
             const stride = i * 4;
-            data[ stride ] = gaussian.x*255;
+            data[ stride + 0 ] = gaussian.x*255;
             data[ stride + 1 ] = gaussian.z*255;
             data[ stride + 2 ] = 0;
             data[ stride + 3 ] = 255;

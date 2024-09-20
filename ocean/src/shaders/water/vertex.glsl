@@ -52,7 +52,7 @@ void main()
     float wavelength=1.0;
     float a= 1.0;               //height muliplier. amplitude
     float w=((3.14*2.0)/wavelength);     //frequency
-    float speed= 0.3;
+    float speed= 0.2;
     float phase= speed*((3.14*2.0)/wavelength);
     float elevation=0.0;
     float dx=0.0;
@@ -72,9 +72,9 @@ void main()
     {
         float D= getDirection(directionVec,modelPosition);
         D+=(dx-dy);
-        elevation+= getElevation(a,D,w,-uTime,speed,phase);
-        dx+= getNormal(a, D, directionVec.x,w,-uTime,speed,phase);
-        dy+= getNormal(a, D, directionVec.y,w,-uTime,speed,phase);
+        elevation+= getElevation(a,D,w,-uTime,speed,phase*0.7);
+        dx+= getNormal(a, D, directionVec.x,w,-uTime,speed,phase*0.7);
+        dy+= getNormal(a, D, directionVec.y,w,-uTime,speed,phase*0.7);
 
         a*=lacunarity;
         // a*=0.78;

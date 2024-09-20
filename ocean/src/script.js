@@ -29,8 +29,7 @@ const gui = new GUI()
 const worldValues = {}
 const debug={}
 // var random = gsap.utils.random(["sunset","sunset2","sunset3","sunset4","sunset5","sunset6","sunset7","clear","clouds1","clouds2"], true);
-const pathArr= ["sunset","sunset2","sunset3","sunset4","sunset5","sunset6","sunset7","clear","clouds1","clouds2","finals/sunset","finals/sunset2","finals/blue_sky3","finals/blue_sky6","finals/blue_sky7","finals/blue_sky9",
-    "finals/blue_sky10","finals/blue_sky12",]
+const pathArr= ["clouds1"]
 
 var random = gsap.utils.random(
     pathArr, true);
@@ -148,7 +147,7 @@ cone.rotation.z=(preferedDirection*-Math.PI)-Math.PI/2
 
 
 
-const waterGeometry = new THREE.PlaneGeometry(64, 64, 512, 512)
+const waterGeometry = new THREE.PlaneGeometry(32, 32, 256, 256)
 
 
 // Material
