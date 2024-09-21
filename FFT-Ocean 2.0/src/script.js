@@ -44,9 +44,9 @@ window.addEventListener('resize', () =>
 
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(1, 2, 1)
+camera.position.set(0, 0, 1)
 scene.add(camera)
-
+scene.background=new THREE.Color('#F9F6EE')
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
@@ -65,29 +65,11 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 // My Stuff
 //----------------------------------------------------------
 
-const geometry = new THREE.PlaneGeometry(1,1)
-console.log(OceanUtils)
+Ocean.testGaussianTexture(scene)
 
-const texture =  OceanUtils.gaussianTexture()
-console.log(texture)
+const JONSWAP= new OceanUtils.JONSWAP(40,20000);
 
-// const material = new THREE.MeshBasicMaterial({color:'white'})
-
-const material = new THREE.MeshBasicMaterial(
-    {
-        map:texture,
-        side:THREE.DoubleSide
-    }
-)
-
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
-
-
-
-
-
-
+Ocean.createWaveSpectrum()
 
 
 

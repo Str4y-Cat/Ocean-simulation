@@ -17,14 +17,13 @@ export function gaussianTexture(width=64,height=64)
     const size = width * height;
     const data = new Uint8Array( 4 * size );
     
-
     for ( let i = 0; i < size; i ++ ) {
         const gaussian     = gaussianRandom()
         const stride       = i * 4;
         data[ stride + 0 ] = gaussian.x*255;
-        data[ stride + 1 ] = gaussian.z*255;
+        data[ stride + 1 ] = gaussian.y*255;
         data[ stride + 2 ] = 0;
-        data[ stride + 3 ] = 255;
+        data[ stride + 3 ] = 1;
     }
 
     // used the buffer to create a DataTexture
@@ -33,30 +32,78 @@ export function gaussianTexture(width=64,height=64)
     return texture
 }
 
-export function getJONSWAP(w)
+
+export class JONSWAP
 {
-    console.log('doing spectrum')
-    //User Variables
-    const F= 10
-    const U= 100
+    constructor(fetch, windSpeed)
+    {
+        this.F=fetch                        //fetch
+        this.U=windSpeed                    //windSpeed
 
+        this.g= 9.8                         //gravity
+        this.Y= 3.3                         //peakEnhancement
+        this.a= this.getSpectralEnergy()    //spectralEnergy
+        this.wp= this.getPeakFrequency()    //peakFrequency
 
-    //constants
-    const g=9.8                         //gravity
-    const a= 0.076*((U**2)/F*g)**0.22    //numeric constant
-    const wp= 22*(g**2/U*F)**(1/3)      //?
-    const Y= 3.3                        //relates to linear changes
-    const o= (w<=wp)?0.07:0.09          //deviance
+        this.o= 0.07
+        console.table(this)
+    }
+    
+    //checked
+    getPeakFrequency()
+    {
+        return 22*(
+            Math.pow((this.g**2)/(this.U*this.F),1/3)
+        )
+    }
 
-    const r= Math.exp(-((w-wp)**2)/(2*(o**2)*(wp**2)))
+    //checked
+    getSpectralEnergy()
+    {
+         return 0.076 * (
+            Math.pow(
+                (this.U**2)/(this.F*this.g),0.22
+            ))
+    }
+
+    getSpectralWidth(w)
+    {
+        return (w<=this.wp)? 0.07 : 0.09
+    }
+
+    /**
+     * returns spectral density based on input frequency
+     * based on JONSWAP equation, found here  https://wikiwaves.org/Ocean-Wave_Spectra
+     *  
+     * @param {*} f frequency 
+     * @returns 
+     */
+    getJONSWAP(f)
+    {
+        const w= 2* Math.PI * f
+        //checked
     
 
-    ((a*(g**2))/w**5)*Math.exp(-(5/4)*(wp/w)**4)*Y**r
+        const A= (this.a*(this.g**2))/Math.pow(w,5)
+        //checked
 
-    // const resultPt1
-    // const resultPt2
-    // const resultPt3
-    const result= ((a*(g**2))/w**5)*Math.exp(-(5/4)*(wp/w)**4)*Y**r
 
-    console.log(r)
+        const B= Math.exp(
+            -(5/4) * Math.pow((this.wp/w),4)
+        )
+        //checked
+
+        const o = this.getSpectralWidth(w)
+        const r= Math.exp
+        (
+            -((w-this.wp)**2)/(2* o**2 * this.wp**2 )
+        )
+        // console.log("r: ",r)
+
+        const C= Math.pow(this.Y,r)
+        // console.log("c: ",C)
+
+        return A*B*C
+
+    }
 }

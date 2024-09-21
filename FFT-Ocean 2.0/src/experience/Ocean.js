@@ -7,23 +7,29 @@ import * as OceanUtils from "./OceanUtils"
 // import gaussianFragment from '../Shaders/ocean/gaussianFragment.glsl'
 
 
-export function setGaussianTexture()
+export function testGaussianTexture(scene,position)
     {
-        return texture= OceanUtils.gaussianTexture(64,64)
+        const geometry = new THREE.PlaneGeometry(1,1)
+        
+        const texture =  OceanUtils.gaussianTexture(64,64)
 
-        // return testMaterial = new THREE.ShaderMaterial({
-        //     vertexShader    :   oceanVertexShader,
-        //     fragmentShader  :   gaussianFragment,
-        //     uniforms:
-        //     {
-        //         uTexture: { value: texture },
-        //     }
-        // })
+        const material = new THREE.MeshBasicMaterial(
+            {
+                map:texture,
+                side:THREE.DoubleSide
+            }
+        )
+        
+        const mesh = new THREE.Mesh(geometry, material)
+        scene.add(mesh)
     }
 
-export function setSpectrumMaterial()
+export function createWaveSpectrum()
 {
-    return OceanUtils.getJONSWAP(2*Math.PI*0.2)
+    const initialTexture =  OceanUtils.gaussianTexture()
+    initialTexture
+    console.log(initialTexture)
+    
 }
 
 export function setInitialSpectrumMaterial(){
