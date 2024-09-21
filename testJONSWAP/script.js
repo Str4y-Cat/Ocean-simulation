@@ -17,7 +17,7 @@ for(let i=0; i<1; i+=0.001)
 const data = {
 labels: labels,
   datasets: [{
-    label: 'My First Dataset',
+    label: 'JONSWAP Ocean spectral density',
     data: spectrumData,
     fill: false,
     borderColor: 'rgb(75, 192, 192)',

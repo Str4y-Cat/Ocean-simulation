@@ -1,39 +1,5 @@
-import * as THREE from 'three'
 
-function gaussianRandom()
-{
-    const u1= Math.random()
-    const u2= Math.random()
-
-    const x= Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)
-    const y= Math.sqrt(-2*Math.log(u1))*Math.sin(2*Math.PI*u2)
-
-    return (new THREE.Vector3(x,y))
-}
-
-export function gaussianTexture(width=64,height=64)
-{
-    
-    const size = width * height;
-    const data = new Uint8Array( 4 * size );
-    
-    for ( let i = 0; i < size; i ++ ) {
-        const gaussian     = gaussianRandom()
-        const stride       = i * 4;
-        data[ stride + 0 ] = gaussian.x*255;
-        data[ stride + 1 ] = gaussian.y*255;
-        data[ stride + 2 ] = 0;
-        data[ stride + 3 ] = 1;
-    }
-
-    // used the buffer to create a DataTexture
-    const texture = new THREE.DataTexture( data, width, height );
-    texture.needsUpdate = true;
-    return texture
-}
-
-
-export class JONSWAP
+export default class JONSWAP
 {
     constructor(fetch, windSpeed)
     {
@@ -42,11 +8,16 @@ export class JONSWAP
 
         this.g= 9.8                         //gravity
         this.Y= 3.3                         //peakEnhancement
+        this.spectralEnergyFactor=0         //test for creative control
+        this.setDynamicValues()
+
+
+        // console.table(this)
+    }
+
+    setDynamicValues(){
         this.a= this.getSpectralEnergy()    //spectralEnergy
         this.wp= this.getPeakFrequency()    //peakFrequency
-
-        this.o= 0.07
-        console.table(this)
     }
     
     //checked
@@ -60,7 +31,7 @@ export class JONSWAP
     //checked
     getSpectralEnergy()
     {
-         return 0.076 * (
+         return (0.076+ this.spectralEnergyFactor )* (
             Math.pow(
                 (this.U**2)/(this.F*this.g),0.22
             ))
@@ -69,6 +40,18 @@ export class JONSWAP
     getSpectralWidth(w)
     {
         return (w<=this.wp)? 0.07 : 0.09
+    }
+
+    setFetch(f)
+    {
+        this.F=f
+        this.setDynamicValues()
+    }
+
+    setWindSpeed(u)
+    {
+        this.U=u
+        this.setDynamicValues()
     }
 
     /**
@@ -104,6 +87,22 @@ export class JONSWAP
         // console.log("c: ",C)
 
         return A*B*C
+
+    }
+
+    getSpectrumParameters()
+    {
+
+        return {
+
+            F  : this.F ,       
+            U  : this.U ,       
+            g  : this.g , 
+            Y  : this.Y , 
+            a  : this.a , 
+            wp : this.wp, 
+            pi : Math.PI,
+        }
 
     }
 }

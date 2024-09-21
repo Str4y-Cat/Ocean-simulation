@@ -1,5 +1,9 @@
 import * as THREE from 'three'
-import * as OceanUtils from "./OceanUtils"
+import JONSWAP from "./JONSWAP"
+import * as Guassian from "./utils/guassian"
+
+import spectrumVertex from "../shaders/spectrum/vertex.glsl"
+import spectrumFragment from "../shaders/spectrum/fragment.glsl"
 
 //compute
 // import oceanVertexShader from '../Shaders/ocean/vertex.glsl'
@@ -7,11 +11,11 @@ import * as OceanUtils from "./OceanUtils"
 // import gaussianFragment from '../Shaders/ocean/gaussianFragment.glsl'
 
 
-export function testGaussianTexture(scene,position)
+    function testGaussianTexture(scene,position)
     {
         const geometry = new THREE.PlaneGeometry(1,1)
         
-        const texture =  OceanUtils.gaussianTexture(64,64)
+        const texture =  Guassian.get2DTexture(64,64)
 
         const material = new THREE.MeshBasicMaterial(
             {
@@ -24,56 +28,41 @@ export function testGaussianTexture(scene,position)
         scene.add(mesh)
     }
 
-export function createWaveSpectrum()
-{
-    const initialTexture =  OceanUtils.gaussianTexture()
-    initialTexture
-    console.log(initialTexture)
-    
-}
+    export function createSpectrum(scene,{ F , U , g , Y , a , wp, pi} )
+    {
+            //create jonswap class
+            //gausian texture
+            //run thr
 
-export function setInitialSpectrumMaterial(){
-    return testMaterial = new THREE.ShaderMaterial({
-        vertexShader:oceanVertexShader,
-        fragmentShader:initialSpectrum,
-        uniforms:{
-            u_wind:new THREE.Uniform(new THREE.Vector2(4.0, 2.0)),
-            u_resolution:new THREE.Uniform(4),
-            u_size:new THREE.Uniform(2),
-        }
-        // wireframe:true 
-    })
-}
+            const texture=  Guassian.get2DTexture(215,215)
+            console.log(texture)
 
-export function setPhaseMaterial(){
-    //create texture
-    const width = 64;
-    const height = 64;
+            const geometry= new THREE.PlaneGeometry(1,1)
+            const material= new THREE.ShaderMaterial({
+                vertexShader: spectrumVertex,
+                fragmentShader:spectrumFragment,
+                side:THREE.DoubleSide,
+                uniforms:
+                {
+                    F  : new THREE.Uniform(F ),
+                    U  : new THREE.Uniform(U ),
+                    g  : new THREE.Uniform(g ),
+                    Y  : new THREE.Uniform(Y ),
+                    a  : new THREE.Uniform(a ),
+                    wp : new THREE.Uniform(wp),
+                    pi : new THREE.Uniform(pi),
+                    uGaussianDistribution: new THREE.Uniform(texture)
+                }
 
-    const size = width * height;
-    const data = new Uint8Array( 4 * size );
+            })
 
-    for ( let i = 0; i < size; i ++ ) {
-        const stride = i * 4;
-        data[ stride ] = 0;
-        data[ stride + 1 ] = 0;
-        data[ stride + 2 ] = 0;
-        data[ stride + 3 ] = 0;
+            const mesh = new THREE.Mesh(geometry,material)
+            scene.add(mesh)
+            return mesh
     }
 
-    // used the buffer to create a DataTexture
-    const texture = new THREE.DataTexture( data, width, height );
-    texture.needsUpdate = true;
-
-    return testMaterial = new THREE.ShaderMaterial({
-                vertexShader:oceanVertexShader,
-                fragmentShader:initialSpectrum,
-                uniforms:{
-                    "u_phases": { value: texture },
-                    "u_deltaTime": { type: "f", value: null },
-                    "u_resolution": { type: "f", value: null },
-                    "u_size": { type: "f", value: null },
-                }
-            // wireframe:true 
-            })
-}
+    export function main(scene, params)
+    {
+        // testGaussianTexture(scene)
+        // return createSpectrum(scene,params)
+    }
