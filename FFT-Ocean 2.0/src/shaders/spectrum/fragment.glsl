@@ -18,7 +18,8 @@ varying vec2 vUv;
 
 #include ./includes/waveSpectra/jonswap.glsl
 #include ./includes/waveSpectra/depthAttenuation.glsl
-#include ./includes/directionalSpreading/dbDirectionalSpread.glsl
+#include ./includes/directionalSpreading/windDirection.glsl
+#include ./includes/directionalSpreading/swellDirection.glsl
 
 
 void main()
@@ -45,21 +46,19 @@ void main()
     /**
     Calculationg the directional spread D(w,theta)
     */
-    // float waveWindAngle = atan((vUv.y-0.5),(vUv.x-0.5)) * 2.0;
-    
-    float waveWindAngle= abs((atan((vUv.y-0.5),(vUv.x-0.5)) - windAngle)); //BEST ONE SO FAR
-    // waveWindAngle/=(pi/2.0);
-    // float waveWindAngle=mod(atan((vUv.y-0.5),(vUv.x-0.5)) - windAngle, 2.0 *pi);
-    // float waveWindAngle=mod(abs(atan((vUv.y-0.5),(vUv.x-0.5)) - windAngle),4.0 *pi);
 
-    vec2 target=vec2(0.0,0.5);
-    // float waveWindAngle = atan((vUv.y-0.5),(vUv.x-0.5)) - atan((target.y),target.x);
+    float waveWindAngle= abs((atan((vUv.y-0.5),(vUv.x-0.5)) - windAngle)); //BEST ONE SO FAR
 
     float E= swellStrength;
-    float D = dbDirectionalSpread( w, wp,  waveWindAngle, pi);
+    float Dwind = windDirection( w, wp,  waveWindAngle, pi);
 
 
+    //Calculate swell
+    float Dswell= swellDirection( w,  wp,  windAngle,  E);
 
+
+    //combine directional spread
+    float D= Dwind*Dswell;
 
 
 
@@ -74,8 +73,9 @@ void main()
     float h0= 1.0 / sqrt(2.0) * (gaussian.x + gaussian.y)*sqrt(S*D);
     
 
-    gl_FragColor= vec4(h0,0.0,0.0,1.0);
-    // gl_FragColor= vec4(D,0.0,0.0,1.0);
+    // gl_FragColor= vec4(h0,0.0,0.0,1.0);
+    gl_FragColor= vec4(Dswell,0.0,0.0,1.0);
+    // gl_FragColor= vec4(Dwind,0.0,0.0,1.0);
     // gl_FragColor= vec4(waveWindAngle,0.0,0.0,1.0);
     // gl_FragColor= vec4(gaussian.xy,0.0,1.0);
 }

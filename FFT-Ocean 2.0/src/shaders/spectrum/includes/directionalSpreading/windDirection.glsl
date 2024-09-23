@@ -1,7 +1,7 @@
 
 //directional spread function by doneal-banner
 //found at "emperical directional wave spectra for computer graphics" by Christopher J. Horvath, page 35
-float dbDirectionalSpread(float w, float wp, float waveWindAngle, float pi)
+float windDirection(float w, float wp, float waveWindAngle, float pi)
 {
     float wwp=w/wp;
     float B= 2.61 * pow((wwp),1.3);
