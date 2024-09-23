@@ -62,61 +62,96 @@ const gui = new GUI({ width: 340 })
 const debugObject = {}
 
 const oceanSpectrum= new JONSWAP(20000,40);
-let oceanParams= oceanSpectrum.getSpectrumParameters()
+//NOTE: create a wrapper function, to hold different spectrum functions, as well as general parameters. 
+// h (height) is NOT part of the Jonswap funciton, but ive put it in for simplicity. Lets see if it becomes an issue
+let jonswapParams= oceanSpectrum.getSpectrumParameters()
 
-console.table(oceanParams)
+let spectrumParams={
+    F  : jonswapParams.F ,       
+    U  : jonswapParams.U ,       
+    g  : jonswapParams.g , 
+    Y  : jonswapParams.Y , 
+    a  : jonswapParams.a , 
+    wp : jonswapParams.wp, 
+    h  : jonswapParams.h,
+    windAngle: 0,    
+    swellStrength: 0,
+    pi : Math.PI,
+}
+console.table(spectrumParams)
 
 
-
-const spectrum= Ocean.createSpectrum(scene,oceanParams)
+const spectrum= Ocean.createSpectrum(scene,spectrumParams)
 console.log(spectrum)
 
-gui.add(oceanParams,"F",0,20000).name("Fetch").onChange((F)=>
+const wavespectrumFolder= gui.addFolder('Wave Spectrum')
+wavespectrumFolder.add(spectrumParams,"F",0,20000).name("Fetch").onChange((F)=>
 {
     oceanSpectrum.setFetch(F)
     const temp = oceanSpectrum.getSpectrumParameters()
-    oceanParams.U=temp.U
-    oceanParams.a=temp.a
-    oceanParams.wp=temp.wp
+    spectrumParams.U=temp.U
+    spectrumParams.a=temp.a
+    spectrumParams.wp=temp.wp
 
-    spectrum.material.uniforms.F.value=oceanParams.F
-    spectrum.material.uniforms.a.value=oceanParams.a
-    spectrum.material.uniforms.wp.value=oceanParams.wp
+    spectrum.material.uniforms.F.value=spectrumParams.F
+    spectrum.material.uniforms.a.value=spectrumParams.a
+    spectrum.material.uniforms.wp.value=spectrumParams.wp
 
 
 })
 
-gui.add(oceanParams,"U",0,100).name("Wind Speed").onChange((U)=>
+wavespectrumFolder.add(spectrumParams,"U",0,100).name("Wind Speed").onChange((U)=>
     {
         oceanSpectrum.setWindSpeed(U)
         const temp = oceanSpectrum.getSpectrumParameters()
-        oceanParams.U=temp.U
-        oceanParams.a=temp.a
-        oceanParams.wp=temp.wp
+        spectrumParams.U=temp.U
+        spectrumParams.a=temp.a
+        spectrumParams.wp=temp.wp
 
-        spectrum.material.uniforms.U.value=oceanParams.U
-        spectrum.material.uniforms.a.value=oceanParams.a
-        spectrum.material.uniforms.wp.value=oceanParams.wp
+        spectrum.material.uniforms.U.value=spectrumParams.U
+        spectrum.material.uniforms.a.value=spectrumParams.a
+        spectrum.material.uniforms.wp.value=spectrumParams.wp
 
     })
 
-gui.add(oceanParams,"Y",1,5).name("Peak Frequency").onChange((Y)=>
+wavespectrumFolder.add(spectrumParams,"Y",1,5).name("Peak Frequency").onChange((Y)=>
     {
         oceanSpectrum.Y=Y
-        spectrum.material.uniforms.Y.value=oceanParams.Y
+        spectrum.material.uniforms.Y.value=spectrumParams.Y
         
     })
 
-gui.add(oceanSpectrum,"spectralEnergyFactor",-0.075,1).name("spectral Energy Factor").onChange((x)=>
+wavespectrumFolder.add(spectrumParams,"h",0,2000).name("Ocean Depth").onChange((h)=>
+    {
+        oceanSpectrum.h=h
+        // console.log(spectrumParams)
+        spectrum.material.uniforms.h.value=spectrumParams.h
+        
+    })
+
+wavespectrumFolder.add(oceanSpectrum,"spectralEnergyFactor",-0.075,1).name("spectral Energy Factor").onChange((x)=>
     {
         oceanSpectrum.setDynamicValues()
-        oceanParams.a=oceanSpectrum.a
-        spectrum.material.uniforms.a.value=oceanParams.a
+        spectrumParams.a=oceanSpectrum.a
+        spectrum.material.uniforms.a.value=spectrumParams.a
 
         
     })
 
 
+const waveDirectionFolder= gui.addFolder('Wave Direction')
+
+waveDirectionFolder.add(spectrumParams,"windAngle", -Math.PI, Math.PI,0.01).onChange(()=>
+{
+    spectrum.material.uniforms.windAngle.value=spectrumParams.windAngle
+
+})
+
+waveDirectionFolder.add(spectrumParams,"swellStrength", 0, 1,0.01).onChange(()=>
+{
+    spectrum.material.uniforms.swellStrength.value=spectrumParams.swellStrength
+
+})
 
 //#region animate
 /**

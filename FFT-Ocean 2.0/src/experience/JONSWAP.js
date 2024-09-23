@@ -8,6 +8,7 @@ export default class JONSWAP
 
         this.g= 9.8                         //gravity
         this.Y= 3.3                         //peakEnhancement
+        this.h=40                   
         this.spectralEnergyFactor=0         //test for creative control
         this.setDynamicValues()
 
@@ -101,6 +102,7 @@ export default class JONSWAP
             Y  : this.Y , 
             a  : this.a , 
             wp : this.wp, 
+            h  : this.h,
             pi : Math.PI,
         }
 

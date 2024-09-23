@@ -28,7 +28,7 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
         scene.add(mesh)
     }
 
-    export function createSpectrum(scene,{ F , U , g , Y , a , wp, pi} )
+    export function createSpectrum(scene,props )
     {
             //create jonswap class
             //gausian texture
@@ -44,14 +44,17 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
                 side:THREE.DoubleSide,
                 uniforms:
                 {
-                    F  : new THREE.Uniform(F ),
-                    U  : new THREE.Uniform(U ),
-                    g  : new THREE.Uniform(g ),
-                    Y  : new THREE.Uniform(Y ),
-                    a  : new THREE.Uniform(a ),
-                    wp : new THREE.Uniform(wp),
-                    pi : new THREE.Uniform(pi),
-                    uGaussianDistribution: new THREE.Uniform(texture)
+                    F  :                    new THREE.Uniform(props.F ),
+                    U  :                    new THREE.Uniform(props.U ),
+                    g  :                    new THREE.Uniform(props.g ),
+                    Y  :                    new THREE.Uniform(props.Y ),
+                    a  :                    new THREE.Uniform(props.a ),
+                    wp :                    new THREE.Uniform(props.wp),
+                    h :                     new THREE.Uniform(props. h),
+                    windAngle:              new THREE.Uniform(props.windAngle),
+                    swellStrength:          new THREE.Uniform(props.swellStrength),
+                    pi :                    new THREE.Uniform(props.pi),
+                    uGaussianDistribution:  new THREE.Uniform(texture)
                 }
 
             })
