@@ -34,7 +34,7 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
             //gausian texture
             //run thr
 
-            const texture=  Guassian.get2DTexture(215,215)
+            const texture=  Guassian.get2DTexture(128,128)
             console.log(texture)
 
             const geometry= new THREE.PlaneGeometry(1,1)
