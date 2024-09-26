@@ -1,3 +1,5 @@
+
+//JONSWAP ocean spectrum function
 float jonswap(float F,float U, float g, float Y, float a, float wp, float w, float o, float pi)
 {
     
@@ -9,4 +11,5 @@ float jonswap(float F,float U, float g, float Y, float a, float wp, float w, flo
     float C= pow(Y,r);
 
     return A * B * C;
+
 }   
