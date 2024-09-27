@@ -6,6 +6,9 @@ import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer
 //imports
 import gpgpuTestShader from "../shaders/gpgpu/test.glsl"
 
+import pointVertexShader from "../shaders/points/vertex.glsl"
+import pointFragmentShader from "../shaders/points/fragment.glsl"
+
 import spectrumVertex from "../shaders/spectrum/vertex.glsl"
 import spectrumFragment from "../shaders/spectrum/fragment.glsl"
 
@@ -81,6 +84,48 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
 
     }
 
+
+    function testPoints(size){
+        const pointGeometry=new THREE.BufferGeometry()
+        pointGeometry.setDrawRange(0,size**2)
+
+
+        const particlesUvArray= new Float32Array(size*size*2)
+        //uvs
+        for(let y =0; y<size;y++)
+        {
+            for(let x =0; x<size; x++)
+            {
+                const i = y* gpgpu.size +x
+                const i2= i*2
+
+                //particles
+                const uvX = (x+0.5)/size 
+                const uvY = (y+0.5)/size
+
+                particlesUvArray[i2 * 0] = uvX;
+                particlesUvArray[i2 * 1] = uvY;
+            }
+        }
+
+        pointGeometry.setAttribute('aParticlesUv', new THREE.BufferAttribute(particlesUvArray, 2))
+        // material
+
+        const material = new THREE.ShaderMaterial({
+
+            vertexShader:pointVertexShader,
+            fragmentShader:pointFragmentShader,
+        })
+        
+        //create the mesh
+        const mesh = new THREE.Points(pointGeometry,material)
+        
+        
+        // return mesh
+        return mesh
+    }
+
+
     export function compute(renderer,scene)
     {
         //parameters to pass in
@@ -103,15 +148,24 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
         /**
          * Variable 1: I believe this is the shader pass. lets see
          */
-        gpgpu.oceanSpectrumVariable = gpgpu.computation.addVariable("uSpectrum",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
+        gpgpu.oceanInitialVariable = gpgpu.computation.addVariable("uRandom",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
         
         // Uniforms
-        gpgpu.oceanSpectrumVariable.material.uniforms.uTime = new THREE.Uniform(0)
+        gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(0)
 
         // we want the data to persist so we need to reinject it.
         //note, i think for the spectrum we wont need to reinject it, as we're only making it once
-        gpgpu.computation.setVariableDependencies(gpgpu.oceanSpectrumVariable,[ gpgpu.oceanSpectrumVariable ]) 
-        
+        // gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
+
+        /**
+         * Variable 2: spectrum
+         */
+        gpgpu.oceanSpectrumVariable = gpgpu.computation.addVariable("uSpectrum",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
+        gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
+
+
+
+
 
         gpgpu.computation.init()
         //do initial calculations
@@ -120,7 +174,7 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
         //debug
         gpgpu.debug = new THREE.Mesh(
             new THREE.PlaneGeometry(1,1),
-            new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.oceanSpectrumVariable).texture})
+            new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.oceanInitialVariable).texture})
         )
 
         scene.add(gpgpu.debug)
@@ -131,7 +185,7 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
         {
             //run the update function
             gpgpu.computation.compute()
-            gpgpu.oceanSpectrumVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
+            gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
 
         }
     }
