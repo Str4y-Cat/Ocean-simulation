@@ -185,7 +185,7 @@ const tick = () =>
     controls.update()
 
     //update the compute shader
-    updateOcean()
+    updateOcean(elapsedTime)
 
     // Render
     renderer.render(scene, camera)

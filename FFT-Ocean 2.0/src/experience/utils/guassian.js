@@ -31,3 +31,21 @@ export function get2DTexture(width=64,height=64)
     texture.needsUpdate = true;
     return texture
 }
+
+export function gaussianTexture(size,texture)
+{
+    
+    const SIZE = size * size;
+    
+    
+    for ( let i = 0; i < SIZE; i ++ ) {
+        const gaussian     = gaussianRandom()
+        const stride       = i * 4;
+        texture.image.data[ stride + 0 ] = gaussian.x;
+        texture.image.data[ stride + 1 ] = gaussian.y;
+        texture.image.data[ stride + 2 ] = 0;
+        texture.image.data[ stride + 3 ] = 1;
+    }
+
+    return texture
+}

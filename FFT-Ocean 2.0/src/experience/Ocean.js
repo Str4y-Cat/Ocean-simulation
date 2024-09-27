@@ -92,18 +92,21 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
         //set up gpgpu
         const gpgpu= {}
         gpgpu.size= rez //square texture used to compute
-        // const texture=  Guassian.get2DTexture(256,256)
+        
         gpgpu.computation = new GPUComputationRenderer(gpgpu.size,gpgpu.size,renderer) //instanciate the gpgpu renderer
 
         //base texture
-        const oceanTexture= gpgpu.computation.createTexture()
+        let oceanTexture= gpgpu.computation.createTexture()
+        oceanTexture=  Guassian.gaussianTexture(256,oceanTexture)
         console.log(oceanTexture.image.data)
 
         /**
          * Variable 1: I believe this is the shader pass. lets see
          */
         gpgpu.oceanSpectrumVariable = gpgpu.computation.addVariable("uSpectrum",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
-
+        
+        // Uniforms
+        gpgpu.oceanSpectrumVariable.material.uniforms.uTime = new THREE.Uniform(0)
 
         // we want the data to persist so we need to reinject it.
         //note, i think for the spectrum we wont need to reinject it, as we're only making it once
@@ -128,6 +131,8 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
         {
             //run the update function
             gpgpu.computation.compute()
+            gpgpu.oceanSpectrumVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
+
         }
     }
 
