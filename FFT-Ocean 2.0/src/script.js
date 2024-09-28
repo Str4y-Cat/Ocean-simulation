@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import * as Ocean from "./experience/Ocean"
-import JONSWAP from "./experience/JONSWAP"
+import betterJONSWAP from './experience/JONSWAP'
 
 
 
@@ -63,8 +63,17 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 const gui = new GUI({ width: 340 })
 const debugObject = {}
 
-const updateOcean= Ocean.compute(renderer,scene)
+//create the parameters
+const jonswap= new betterJONSWAP(20000,40);
+let spectrumParams={
+    ...jonswap.update(),
+    windAngle: 0,    
+    swellStrength: 0,
+    pi : Math.PI,
+}
 
+const oceanHandler= Ocean.compute(renderer,scene,spectrumParams)
+console.log(oceanHandler)
 
 // const oceanSpectrum= new JONSWAP(20000,40);
 
@@ -72,18 +81,7 @@ const updateOcean= Ocean.compute(renderer,scene)
 // // h (height) is NOT part of the Jonswap funciton, but ive put it in for simplicity. Lets see if it becomes an issue
 // let jonswapParams= oceanSpectrum.getSpectrumParameters()
 
-// let spectrumParams={
-//     F  : jonswapParams.F ,       
-//     U  : jonswapParams.U ,       
-//     g  : jonswapParams.g , 
-//     Y  : jonswapParams.Y , 
-//     a  : jonswapParams.a , 
-//     wp : jonswapParams.wp, 
-//     h  : jonswapParams.h,
-//     windAngle: 0,    
-//     swellStrength: 0,
-//     pi : Math.PI,
-// }
+
 // console.table(spectrumParams)
 
 // //create the ocean spectrumm texture
@@ -94,73 +92,67 @@ const updateOcean= Ocean.compute(renderer,scene)
  * TWEAKS
  */
 
-// const wavespectrumFolder= gui.addFolder('Wave Spectrum')
-// wavespectrumFolder.add(spectrumParams,"F",0,20000).name("Fetch").onChange((F)=>
-// {
-//     oceanSpectrum.setFetch(F)
-//     const temp = oceanSpectrum.getSpectrumParameters()
-//     spectrumParams.U=temp.U
-//     spectrumParams.a=temp.a
-//     spectrumParams.wp=temp.wp
+const wavespectrumFolder= gui.addFolder('Wave Spectrum')
+wavespectrumFolder.add(spectrumParams,"F",0,20000).name("Fetch").onChange((F)=>
+{
+    jonswap.values.F=F
+    const temp = jonswap.update()
+    spectrumParams.U=temp.U
+    spectrumParams.a=temp.a
+    spectrumParams.wp=temp.wp
 
-//     spectrum.material.uniforms.F.value=spectrumParams.F
-//     spectrum.material.uniforms.a.value=spectrumParams.a
-//     spectrum.material.uniforms.wp.value=spectrumParams.wp
+    oceanHandler.updateParams(spectrumParams)
+})
+
+wavespectrumFolder.add(spectrumParams,"U",0,100).name("Wind Speed").onChange((U)=>
+    {
+        jonswap.values.U=U
+        const temp = jonswap.update()
+        spectrumParams.U=temp.U
+        spectrumParams.a=temp.a
+        spectrumParams.wp=temp.wp
+        oceanHandler.updateParams(spectrumParams)
 
 
-// })
+    })
 
-// wavespectrumFolder.add(spectrumParams,"U",0,100).name("Wind Speed").onChange((U)=>
-//     {
-//         oceanSpectrum.setWindSpeed(U)
-//         const temp = oceanSpectrum.getSpectrumParameters()
-//         spectrumParams.U=temp.U
-//         spectrumParams.a=temp.a
-//         spectrumParams.wp=temp.wp
-
-//         spectrum.material.uniforms.U.value=spectrumParams.U
-//         spectrum.material.uniforms.a.value=spectrumParams.a
-//         spectrum.material.uniforms.wp.value=spectrumParams.wp
-
-//     })
-
-// wavespectrumFolder.add(spectrumParams,"Y",1,5).name("Peak Frequency").onChange((Y)=>
-//     {
-//         oceanSpectrum.Y=Y
-//         spectrum.material.uniforms.Y.value=spectrumParams.Y
+wavespectrumFolder.add(spectrumParams,"Y",1,5).name("Peak Frequency").onChange((Y)=>
+    {
+        jonswap.Y=Y
+        oceanHandler.updateParams(spectrumParams)
         
-//     })
+    })
 
-// wavespectrumFolder.add(spectrumParams,"h",0,2000).name("Ocean Depth").onChange((h)=>
-//     {
-//         oceanSpectrum.h=h
-//         // console.log(spectrumParams)
-//         spectrum.material.uniforms.h.value=spectrumParams.h
+wavespectrumFolder.add(spectrumParams,"h",0,2000).name("Ocean Depth").onChange((h)=>
+    {
+        jonswap.h=h
+        oceanHandler.updateParams(spectrumParams)
         
-//     })
+    })
 
-// wavespectrumFolder.add(oceanSpectrum,"spectralEnergyFactor",-0.075,1).name("spectral Energy Factor").onChange((x)=>
-//     {
-//         oceanSpectrum.setDynamicValues()
-//         spectrumParams.a=oceanSpectrum.a
-//         spectrum.material.uniforms.a.value=spectrumParams.a
+wavespectrumFolder.add(jonswap.values,"spectralEnergyFactor",-0.075,1).name("spectral Energy Factor").onChange((x)=>
+    {
+        jonswap.update()
+        spectrumParams.a=jonswap.values.a
+        oceanHandler.updateParams(spectrumParams)
 
-        
-//     })
+    })
 
-// const waveDirectionFolder= gui.addFolder('Wave Direction')
+const waveDirectionFolder= gui.addFolder('Wave Direction')
 
-// waveDirectionFolder.add(spectrumParams,"windAngle", -Math.PI, Math.PI,0.01).onChange(()=>
-// {
-//     spectrum.material.uniforms.windAngle.value=spectrumParams.windAngle
+waveDirectionFolder.add(spectrumParams,"windAngle", -Math.PI, Math.PI,0.01).onChange(()=>
+{
+    spectrumParams.windAngle
+    oceanHandler.updateParams(spectrumParams)
 
-// })
+})
 
-// waveDirectionFolder.add(spectrumParams,"swellStrength", 0, 1,0.01).onChange(()=>
-// {
-//     spectrum.material.uniforms.swellStrength.value=spectrumParams.swellStrength
+waveDirectionFolder.add(spectrumParams,"swellStrength", 0, 1,0.01).onChange(()=>
+{
+    spectrumParams.swellStrength
+    oceanHandler.updateParams(spectrumParams)
 
-// })
+})
 
 
 

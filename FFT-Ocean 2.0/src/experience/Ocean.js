@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import JONSWAP from "./JONSWAP"
 import * as Guassian from "./utils/guassian"
+import betterJONSWAP from './JONSWAP'
 import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer.js'
 
 //imports
@@ -11,6 +12,8 @@ import pointFragmentShader from "../shaders/points/fragment.glsl"
 
 import spectrumVertex from "../shaders/spectrum/vertex.glsl"
 import spectrumFragment from "../shaders/spectrum/fragment.glsl"
+
+import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
 
 //compute
 // import oceanVertexShader from '../Shaders/ocean/vertex.glsl'
@@ -71,19 +74,196 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
             return mesh
     }
 
-    export function nameLater()
+    export function createSpectrumTexture(gpgpu,randomTexture, props)
     {
-        //figure out how to do multiple passes for the ping pong buffer thing
-        //create the spectrum texture
+        
+        const uniforms=
+        {
+            uRandomDistribution: new THREE.Uniform(randomTexture),
+            ...createUniforms(props)
+        }
+        console.log(uniforms)
 
-        //1. create the random texture using random function of choice
-        // IN THE GPGPU 
-        // 1.  create the spectrum texture based on all your parameters
-        // - - option to show spectrum texture
-        // setSpectrum({props}, )
+        const spectrumPass = gpgpu.computation.createShaderMaterial( spectrumCompute,  uniforms  );
+        // const inputTexture = gpgpu.computation.createTexture();
+       
+        //add the uniforms
+        // spectrumPass.uniforms. = inputTexture;
+
+
+
+        // const myRenderTarget = gpgpu.computation.createRenderTarget();
+         let myRenderTarget = gpgpu.computation.createRenderTarget();
+        
+
+
+        // And compute the frame, before rendering to screen:
+        // gpgpu.computation.doRenderTarget( spectrumPass, myRenderTarget );
+        
+        return (newProps)=>
+        {
+            
+            if(newProps)
+            {
+                
+
+                //reset the uniforms. loop through newProps and replace uniforms values
+                for(const key in newProps)
+                {
+                    // console.log(key,newProps[key])
+                    uniforms[key]=new THREE.Uniform(newProps[key])
+                    // console.log(uniforms[key])
+                    spectrumPass.uniforms[key]=uniforms[key]
+                    // console.log(spectrumPass.uniforms[key])
+
+                }
+
+                // console.log('user made a change')
+                // console.log(uniforms)
+                // console.log(spectrumPass.uniforms)
+                
+
+
+                //doRenderTarget()
+
+                
+                
+
+            }
+            // myRenderTarget = gpgpu.computation.createRenderTarget();
+            gpgpu.computation.doRenderTarget( spectrumPass, myRenderTarget );
+            //return the texture
+            return(myRenderTarget.texture)
+        }
+        
+        // return myRenderTarget.texture;
+    }
+
+
+  
+
+    export function compute(renderer,scene, props)
+    {
+        //parameters to pass in
+        let rez=256;
+        
+
+
+
+        //set up gpgpu
+        const gpgpu= {}
+        gpgpu.size= rez //square texture used to compute
+        
+        gpgpu.computation = new GPUComputationRenderer(gpgpu.size,gpgpu.size,renderer) //instanciate the gpgpu renderer
+
+        //base texture
+        let oceanTexture= gpgpu.computation.createTexture()
+        oceanTexture=  Guassian.gaussianTexture(256,oceanTexture)
+        console.log(oceanTexture.image.data)
+
+        /**
+         * Variable 1: Create the ocean Spectrum
+         */
+        // gpgpu.oceanInitialVariable = gpgpu.computation.addVariable("uRandom",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
+        
+        // Uniforms
+        // gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(0)
+
+        // we want the data to persist so we need to reinject it.
+        //note, i think for the spectrum we wont need to reinject it, as we're only making it once
+        // gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
+
+        /**
+         * Variable 2: spectrum
+         */
+        // gpgpu.oceanSpectrumVariable = gpgpu.computation.addVariable("uSpectrum",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
+        // gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
+        
+
+
+        const spectrumCreator= createSpectrumTexture(gpgpu,oceanTexture,props);
+        const texture= spectrumCreator({F:5, U:10})
+
+        // gpgpu.computation.init()
+        //do initial calculations
+
+
+
+        //debug
+        // gpgpu.debug = new THREE.Mesh(
+        //     new THREE.PlaneGeometry(1,1),
+        //     new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.oceanInitialVariable).texture})
+        // )
+        gpgpu.debug = new THREE.Mesh(
+            new THREE.PlaneGeometry(1,1),
+            new THREE.MeshBasicMaterial({map:texture})
+        )
+
+        scene.add(gpgpu.debug)
+
+        return {
+            updateParams: (props)=>
+            {
+                spectrumCreator(props)
+            },
+
+            compute: (elapsedTime)=>
+            {
+                //run the update function
+                gpgpu.computation.compute()
+                gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
+            }
+        }
+
+        //returns update function to be called on tick
+        return (elapsedTime)=>
+        {
+            //run the update function
+            gpgpu.computation.compute()
+            gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
+
+        }
+    }
+
+    // export function compute()
+    // {
+    //     //set up gpgpu
+
+    //     //do initial calculations
+
+
+    //     //returns update function to be called on tick
+    //     return (elapsedTime)=>
+    //     {
+    //         //run the update function
+    //     }
+    // }
+
+    export function main(scene, params)
+    {
+        // testGaussianTexture(scene)
+        // return createSpectrum(scene,params)
+
 
     }
 
+
+
+
+/**UTILITIES
+ * 
+ * 
+ */
+
+function createUniforms(obj)
+    {
+        const uniforms= {}
+        for (const key in obj)
+        {
+            uniforms[key]=new THREE.Uniform(obj[key])
+        }
+        return uniforms
+    }
 
     function testPoints(size){
         const pointGeometry=new THREE.BufferGeometry()
@@ -126,88 +306,22 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
     }
 
 
-    export function compute(renderer,scene)
+    //DEBUG
+    function debug(gui,originalProps,updateFunction)
     {
-        //parameters to pass in
-        let rez=256;
-        
+        const debugValues={...originalProps}
 
+        const waveDirectionFolder= gui.addFolder('Wave Direction')
 
-
-        //set up gpgpu
-        const gpgpu= {}
-        gpgpu.size= rez //square texture used to compute
-        
-        gpgpu.computation = new GPUComputationRenderer(gpgpu.size,gpgpu.size,renderer) //instanciate the gpgpu renderer
-
-        //base texture
-        let oceanTexture= gpgpu.computation.createTexture()
-        oceanTexture=  Guassian.gaussianTexture(256,oceanTexture)
-        console.log(oceanTexture.image.data)
-
-        /**
-         * Variable 1: I believe this is the shader pass. lets see
-         */
-        gpgpu.oceanInitialVariable = gpgpu.computation.addVariable("uRandom",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
-        
-        // Uniforms
-        gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(0)
-
-        // we want the data to persist so we need to reinject it.
-        //note, i think for the spectrum we wont need to reinject it, as we're only making it once
-        // gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
-
-        /**
-         * Variable 2: spectrum
-         */
-        gpgpu.oceanSpectrumVariable = gpgpu.computation.addVariable("uSpectrum",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
-        gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
-
-
-
-
-
-        gpgpu.computation.init()
-        //do initial calculations
-
-
-        //debug
-        gpgpu.debug = new THREE.Mesh(
-            new THREE.PlaneGeometry(1,1),
-            new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.oceanInitialVariable).texture})
-        )
-
-        scene.add(gpgpu.debug)
-
-
-        //returns update function to be called on tick
-        return (elapsedTime)=>
+        waveDirectionFolder.add(spectrumParams,"windAngle", -Math.PI, Math.PI,0.01).onChange(()=>
         {
-            //run the update function
-            gpgpu.computation.compute()
-            gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
+            spectrum.material.uniforms.windAngle.value=spectrumParams.windAngle
 
-        }
-    }
+        })
 
-    // export function compute()
-    // {
-    //     //set up gpgpu
+        waveDirectionFolder.add(spectrumParams,"swellStrength", 0, 1,0.01).onChange(()=>
+        {
+            spectrum.material.uniforms.swellStrength.value=spectrumParams.swellStrength
 
-    //     //do initial calculations
-
-
-    //     //returns update function to be called on tick
-    //     return (elapsedTime)=>
-    //     {
-    //         //run the update function
-    //     }
-    // }
-
-    export function main(scene, params)
-    {
-        // testGaussianTexture(scene)
-        // return createSpectrum(scene,params)
-
-
-    }
+        })
+    }   

@@ -1,6 +1,6 @@
 
 //JONSWAP ocean spectrum function
-float jonswap(float F,float U, float g, float Y, float a, float wp, float w, float o, float pi)
+float jonswap(float g, float Y, float a, float wp, float w, float o, float pi)
 {
     
     float A= (a*(g*g))/pow(w,5.0);
