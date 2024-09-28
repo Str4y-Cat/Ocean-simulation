@@ -74,9 +74,17 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
             return mesh
     }
 
+    /**
+     * Creates the initial spectrum texture
+     * 
+     * @param {*} gpgpu 
+     * @param {*} randomTexture 
+     * @param {*} props 
+     * @returns returns a function that returns the texture if called without parameters, and updates the texture if called with parameters
+     */
     export function createSpectrumTexture(gpgpu,randomTexture, props)
     {
-        
+        //set up the uniforms
         const uniforms=
         {
             uRandomDistribution: new THREE.Uniform(randomTexture),
@@ -84,64 +92,35 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
         }
         console.log(uniforms)
 
+        //set up the shader pass
         const spectrumPass = gpgpu.computation.createShaderMaterial( spectrumCompute,  uniforms  );
-        // const inputTexture = gpgpu.computation.createTexture();
-       
-        //add the uniforms
-        // spectrumPass.uniforms. = inputTexture;
+
+        let renderTarget = gpgpu.computation.createRenderTarget();
 
 
-
-        // const myRenderTarget = gpgpu.computation.createRenderTarget();
-         let myRenderTarget = gpgpu.computation.createRenderTarget();
-        
-
-
-        // And compute the frame, before rendering to screen:
-        // gpgpu.computation.doRenderTarget( spectrumPass, myRenderTarget );
-        
         return (newProps)=>
         {
             
             if(newProps)
             {
-                
-
-                //reset the uniforms. loop through newProps and replace uniforms values
+                //updates the uniforms of the shader
                 for(const key in newProps)
                 {
-                    // console.log(key,newProps[key])
                     uniforms[key]=new THREE.Uniform(newProps[key])
-                    // console.log(uniforms[key])
                     spectrumPass.uniforms[key]=uniforms[key]
-                    // console.log(spectrumPass.uniforms[key])
-
                 }
-
-                // console.log('user made a change')
-                // console.log(uniforms)
-                // console.log(spectrumPass.uniforms)
-                
-
-
-                //doRenderTarget()
-
-                
-                
-
             }
-            // myRenderTarget = gpgpu.computation.createRenderTarget();
-            gpgpu.computation.doRenderTarget( spectrumPass, myRenderTarget );
-            //return the texture
-            return(myRenderTarget.texture)
+
+            //render the texture to the rendertarget
+            gpgpu.computation.doRenderTarget( spectrumPass, renderTarget );
+
+
+            return(renderTarget.texture)
         }
         
-        // return myRenderTarget.texture;
     }
 
-
-  
-
+    //TODO: lets clean this up aswell
     export function compute(renderer,scene, props)
     {
         //parameters to pass in
@@ -156,48 +135,63 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
         
         gpgpu.computation = new GPUComputationRenderer(gpgpu.size,gpgpu.size,renderer) //instanciate the gpgpu renderer
 
-        //base texture
-        let oceanTexture= gpgpu.computation.createTexture()
-        oceanTexture=  Guassian.gaussianTexture(256,oceanTexture)
-        console.log(oceanTexture.image.data)
+        /**
+         * CREATE THE INITIAL SPECTRUM TEXTURE
+         * done once, recomputed on parameter change. Hopefully atleast
+         */
+
+        //create the random texture. In our case a gaussian distribution
+        let randomDispersionTexture= gpgpu.computation.createTexture()
+        randomDispersionTexture=  Guassian.gaussianTexture(256,randomDispersionTexture)
+        console.log(randomDispersionTexture.image.data)
+
+        //create the spectrum texture
+        const spectrumCreator = createSpectrumTexture(gpgpu,randomDispersionTexture,props);
+        const spectrumTexture = spectrumCreator()
 
         /**
-         * Variable 1: Create the ocean Spectrum
+         * CREATE THE UPDATING COMPUTE SHADERS
+         * 
+         * Goal:
+         * - create a sequence of variables that will follow on from each other. 
+         * 
+         * - create spectrum that is shifted by the phase (move the spectrun forward in time)
+         * - create the derivatives and displacement passes
+         * - combine the displacement and derivatives
+         * - add lighting, not sure if this needs to be a pass
          */
-        // gpgpu.oceanInitialVariable = gpgpu.computation.addVariable("uRandom",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
-        
-        // Uniforms
-        // gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(0)
-
-        // we want the data to persist so we need to reinject it.
-        //note, i think for the spectrum we wont need to reinject it, as we're only making it once
-        // gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
-
-        /**
-         * Variable 2: spectrum
-         */
-        // gpgpu.oceanSpectrumVariable = gpgpu.computation.addVariable("uSpectrum",gpgpuTestShader,oceanTexture) //create a variablein the shader we can acess the texture as "uSpectrum"
-        // gpgpu.computation.setVariableDependencies(gpgpu.oceanInitialVariable,[ gpgpu.oceanInitialVariable ]) 
+       
+        const phaseTexture = gpgpu.computation.createTexture();
+        const displacementTexture = gpgpu.computation.createTexture();
+        const derivativesTexture = gpgpu.computation.createTexture();
         
 
+        gpgpu.phaseVariable  = gpgpu.computation.addVariable('texturePhase', gpgpuTestShader, phaseTexture)
 
-        const spectrumCreator= createSpectrumTexture(gpgpu,oceanTexture,props);
-        const texture= spectrumCreator({F:5, U:10})
+        // gpgpu.displacementVariable = gpgpu.computation.addVariable('textureDisplacement', displacementFragment, displacementTexture)
+        // gpgpu.derivativesVariable  = gpgpu.computation.addVariable('textureDerivatives' , derivativeFragment  , derivativesTexture)
 
-        // gpgpu.computation.init()
+        // gpgpu.computation.setVariableDependencies(gpgpu.displacementVariable,[gpgpu.phaseVariable])
+        // gpgpu.computation.setVariableDependencies(gpgpu.displacementVariable,[gpgpu.phaseVariable])
+
+        gpgpu.phaseVariable.material.uniforms.utime=new THREE.Uniform(0)
+        gpgpu.phaseVariable.material.uniforms.uSpectrumTexture= new THREE.Uniform(spectrumTexture)
+
+        gpgpu.computation.init()
         //do initial calculations
 
 
 
         //debug
-        // gpgpu.debug = new THREE.Mesh(
-        //     new THREE.PlaneGeometry(1,1),
-        //     new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.oceanInitialVariable).texture})
-        // )
         gpgpu.debug = new THREE.Mesh(
             new THREE.PlaneGeometry(1,1),
-            new THREE.MeshBasicMaterial({map:texture})
+            new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.phaseVariable).texture})
         )
+        
+        // gpgpu.debug = new THREE.Mesh(
+        //     new THREE.PlaneGeometry(1,1),
+        //     new THREE.MeshBasicMaterial({map:spectrumTexture})
+        // )
 
         scene.add(gpgpu.debug)
 
@@ -210,18 +204,9 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
             compute: (elapsedTime)=>
             {
                 //run the update function
+                gpgpu.phaseVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
                 gpgpu.computation.compute()
-                gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
             }
-        }
-
-        //returns update function to be called on tick
-        return (elapsedTime)=>
-        {
-            //run the update function
-            gpgpu.computation.compute()
-            gpgpu.oceanInitialVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
-
         }
     }
 

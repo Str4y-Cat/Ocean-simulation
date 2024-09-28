@@ -106,6 +106,8 @@
 //     }
 // }
 
+
+//Just returns the parameters and updates them 
 export default class betterJONSWAP
 {
     constructor(fetch, windSpeed)

@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
+import Stats from "stats.js" 
 import * as Ocean from "./experience/Ocean"
 import betterJONSWAP from './experience/JONSWAP'
 
@@ -60,6 +61,10 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 //
 // My Stuff
 //----------------------------------------------------------
+var stats = new Stats();
+stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild( stats.dom );
+
 const gui = new GUI({ width: 340 })
 const debugObject = {}
 
@@ -167,6 +172,7 @@ const clock = new THREE.Clock()
 
 const tick = () =>
 {
+    stats.begin()
     const elapsedTime = clock.getElapsedTime()
 
     //test animation
@@ -178,10 +184,11 @@ const tick = () =>
 
     //update the compute shader
     // updateOcean(elapsedTime)  
+    oceanHandler.compute(elapsedTime)
 
     // Render
     renderer.render(scene, camera)
-
+    stats.end()
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
 }
