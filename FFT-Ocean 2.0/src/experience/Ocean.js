@@ -7,6 +7,8 @@ import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer
 //imports
 import gpgpuTestShader from "../shaders/gpgpu/test.glsl"
 
+import fftShader from '../shaders/utils/fft.glsl'
+
 import pointVertexShader from "../shaders/points/vertex.glsl"
 import pointFragmentShader from "../shaders/points/fragment.glsl"
 
@@ -166,7 +168,7 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
         const derivativesTexture = gpgpu.computation.createTexture();
         
 
-        gpgpu.phaseVariable  = gpgpu.computation.addVariable('texturePhase', gpgpuTestShader, phaseTexture)
+        gpgpu.phaseVariable  = gpgpu.computation.addVariable('texturePhase', fftShader, phaseTexture)
 
         // gpgpu.displacementVariable = gpgpu.computation.addVariable('textureDisplacement', displacementFragment, displacementTexture)
         // gpgpu.derivativesVariable  = gpgpu.computation.addVariable('textureDerivatives' , derivativeFragment  , derivativesTexture)
@@ -175,7 +177,9 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
         // gpgpu.computation.setVariableDependencies(gpgpu.displacementVariable,[gpgpu.phaseVariable])
 
         gpgpu.phaseVariable.material.uniforms.utime=new THREE.Uniform(0)
-        gpgpu.phaseVariable.material.uniforms.uSpectrumTexture= new THREE.Uniform(spectrumTexture)
+        gpgpu.phaseVariable.material.uniforms.u_transformSize=new THREE.Uniform(512)
+        gpgpu.phaseVariable.material.uniforms.u_subtransformSize=new THREE.Uniform(512)
+        gpgpu.phaseVariable.material.uniforms.u_input= new THREE.Uniform(spectrumTexture)
 
         gpgpu.computation.init()
         //do initial calculations

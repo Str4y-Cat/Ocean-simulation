@@ -163,7 +163,8 @@ void main()
 
     // general
     //----------------------------------------
-    gl_FragColor= vec4(1.0,1.0,1.0,1.0);
+    // gl_FragColor= vec4(1.0,1.0,1.0,1.0);
+    // gl_FragColor= vec4(randomDispertion.x,randomDispertion.y,0.0,1.0);
 
 
 
