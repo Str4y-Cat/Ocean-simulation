@@ -187,15 +187,15 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
 
 
         //debug
-        gpgpu.debug = new THREE.Mesh(
-            new THREE.PlaneGeometry(1,1),
-            new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.phaseVariable).texture})
-        )
-        
         // gpgpu.debug = new THREE.Mesh(
         //     new THREE.PlaneGeometry(1,1),
-        //     new THREE.MeshBasicMaterial({map:spectrumTexture})
+        //     new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget(gpgpu.phaseVariable).texture})
         // )
+        
+        gpgpu.debug = new THREE.Mesh(
+            new THREE.PlaneGeometry(1,1),
+            new THREE.MeshBasicMaterial({map:spectrumTexture})
+        )
 
         scene.add(gpgpu.debug)
 

@@ -18,7 +18,7 @@ varying vec2 vUv;
 varying vec3 vPosition;
 
 
-#include ./includes/waveSpectra/jonswap.glsl
+#include ./includes/waveSpectra/tma.glsl
 #include ./includes/waveSpectra/depthAttenuation.glsl
 #include ./includes/directionalSpreading/windDirection.glsl
 #include ./includes/directionalSpreading/swellDirection.glsl

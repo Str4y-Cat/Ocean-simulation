@@ -1,6 +1,9 @@
 //constants
 uniform sampler2D uRandomDistribution;
 uniform float pi; //no shit dude   
+uniform float lengthScale; //Not sure why we need this
+uniform float highCutoff;
+uniform float lowCutoff;
 
 //ocean spectrum variables
 uniform float g; //gravity
@@ -13,7 +16,7 @@ uniform float h;//depth
 uniform float windAngle;
 uniform float swellStrength;
 
-#include ./includes/waveSpectra/jonswap.glsl
+#include ./includes/waveSpectra/tma.glsl
 #include ./includes/waveSpectra/depthAttenuation.glsl
 #include ./includes/directionalSpreading/windDirection.glsl
 #include ./includes/directionalSpreading/swellDirection.glsl
@@ -24,11 +27,13 @@ void main()
 
     SET UP VARIABLES
     ----------------------------------------------------------------------------------*/
-
+    float deltaK = 2 * pi / lengthScale;
+    
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
     float f= abs(distance(uv,vec2(0.5,0.5))); //f= distance from the origin
-    float w= 2.0 * pi * f;  //w= angular frequency
+    // float w= 2.0 * pi * f;  
+    float w= getAngularFrequency( g,  f,  h); //w= angular frequency
 
 
     /* -------------------------------------------------------------------------------
@@ -43,7 +48,7 @@ void main()
         o = 0.07;
     }
 
-    float S = jonswap(g, Y, a, wp, w, o, pi); //* depthAttenuation(w,h,g); dont know if this is correct, must check on sim once created
+    float S = jonswap(g, Y, a, wp, w, o, pi) * depthAttenuation(w,h,g); //dont know if this is correct, must check on sim once created
 
  
     /* -------------------------------------------------------------------------------
