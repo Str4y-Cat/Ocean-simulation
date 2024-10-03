@@ -128,7 +128,7 @@ wavespectrumFolder.add(spectrumParams,"Y",1,5).name("Peak Frequency").onChange((
         
     })
 
-wavespectrumFolder.add(spectrumParams,"h",0,2000).name("Ocean Depth").onChange((h)=>
+wavespectrumFolder.add(spectrumParams,"h",0,40).name("Ocean Depth").onChange((h)=>
     {
         jonswap.h=h
         oceanHandler.updateParams(spectrumParams)
@@ -194,5 +194,3 @@ const tick = () =>
 }
 
 tick()
-
-//#endregion

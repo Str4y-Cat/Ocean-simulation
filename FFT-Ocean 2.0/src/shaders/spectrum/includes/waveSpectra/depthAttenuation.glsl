@@ -1,6 +1,6 @@
 
 //texel MARSEN ARSLOE (TMA) Spectrum modifier
-float depthAttenuation(float w,float h,float g)
+float depthAttenuation(float wh,float h,float g)
 {
     if(wh > 1.0)
     {

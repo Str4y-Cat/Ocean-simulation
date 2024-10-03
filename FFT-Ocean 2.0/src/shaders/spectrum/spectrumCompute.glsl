@@ -27,7 +27,7 @@ void main()
 
     SET UP VARIABLES
     ----------------------------------------------------------------------------------*/
-    float deltaK = 2 * pi / lengthScale;
+    float deltaK = 2.0 * pi / lengthScale;
     
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
