@@ -72,7 +72,8 @@ const debugObject = {}
 const jonswap= new betterJONSWAP(20000,40);
 let spectrumParams={
     ...jonswap.update(),
-    windAngle: 0,    
+    windAngle: 0,   
+    swellAngle:0, 
     swellStrength: 0,
     pi : Math.PI,
 }
@@ -151,6 +152,13 @@ waveDirectionFolder.add(spectrumParams,"windAngle", -Math.PI, Math.PI,0.01).onCh
     oceanHandler.updateParams(spectrumParams)
 
 })
+
+waveDirectionFolder.add(spectrumParams,"swellAngle", -Math.PI, Math.PI,0.01).onChange(()=>
+    {
+        spectrumParams.windAngle
+        oceanHandler.updateParams(spectrumParams)
+    
+    })
 
 waveDirectionFolder.add(spectrumParams,"swellStrength", 0, 1,0.01).onChange(()=>
 {

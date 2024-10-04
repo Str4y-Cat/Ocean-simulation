@@ -14,6 +14,7 @@ uniform float h;//depth
 
 //directional spreading variables
 uniform float windAngle;
+uniform float swellAngle;
 uniform float swellStrength;
 
 #include ./includes/waveSpectra/tma.glsl
@@ -23,10 +24,17 @@ uniform float swellStrength;
 
 void main()
 {
+
+    //TODO: 
+    // - need to create a whole seperate spectrum for the swell spreding function, i.e all of those spectrum variables, save from height and gravity
+    // - need to create the final spectrum texture, with the modified function(with the derivatives)
+    // - need to create two duplicate shaders, one for the wavedata, one for the complex conjugate, and one for this
     /* -------------------------------------------------------------------------------
 
     SET UP VARIABLES
     ----------------------------------------------------------------------------------*/
+
+
     float deltaK = 2.0 * pi / lengthScale;
     
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -140,11 +148,13 @@ void main()
 
 
     //Calculate swell
-    float Dswell= swellDirection( w,  wp,  windAngle,  E);
+    float Dswell= swellDirection( w,  wp,  waveWindAngle,  swellAngle, swellStrength,  pi);
 
 
     //combine directional spread
-    float D= Dwind;//*Dswell;
+    // float D= Dwind *Dswell;
+
+    
 
 
     /* -------------------------------------------------------------------------------
@@ -152,12 +162,15 @@ void main()
     COMBINE THE DIRECTIONAL SPREAD AND ENERGY FUNCTIONS
     ----------------------------------------------------------------------------------*/
 
+    float spectrum = S* Dwind;
+    spectrum += S* Dswell;
+
     vec4 randomDispertion= texture(uRandomDistribution,uv);
     randomDispertion.x= clamp(randomDispertion.x, 0.0 , 1.0);
     randomDispertion.y= clamp(randomDispertion.y, 0.0 , 1.0);
 
 
-    float h0= 1.0 / sqrt(2.0) * (randomDispertion.x + randomDispertion.y)*sqrt(S*D);
+    float h0= 1.0 / sqrt(2.0) * (randomDispertion.x + randomDispertion.y)*sqrt(spectrum);
 
 
 
@@ -180,7 +193,7 @@ void main()
 
     //  directional spreading debug
     //----------------------------------------
-    // gl_FragColor= vec4(Dswell,0.0,0.0,1.0);
+    gl_FragColor= vec4(Dswell,0.0,0.0,1.0);
     // gl_FragColor= vec4(Dwind,0.0,0.0,1.0);
     // gl_FragColor= vec4(waveWindAngle,0.0,0.0,1.0);
     // gl_FragColor= vec4(testcolor);
