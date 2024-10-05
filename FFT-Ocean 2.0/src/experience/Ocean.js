@@ -17,6 +17,9 @@ import spectrumFragment from "../shaders/spectrum/fragment.glsl"
 
 import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
 import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute.glsl"
+import waveData from "../shaders/spectrum/waveData.glsl"
+import computeDxDy_Phase from "../shaders/phase/DxDy_Phase.glsl"
+import computeDyxDxx_Phase from "../shaders/phase/DyxDxx_Phase.glsl"
 
 //compute
 // import oceanVertexShader from '../Shaders/ocean/vertex.glsl'
@@ -101,10 +104,12 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
 
         //shader pass 2, add the complex conjugate
         const initialAndConjugatePass = gpgpu.computation.createShaderMaterial( complexConjugateCompute,{initialSpectrumTexture:{value:null}}  );
-
         initialAndConjugatePass.uniforms.initialSpectrumTexture.value = renderTarget.texture;
-
         const outputRenderTarget = gpgpu.computation.createRenderTarget();
+
+        //set up the wave data pass
+        const waveDataPass = gpgpu.computation.createShaderMaterial( waveData,  {g:uniforms.g, h: uniforms.h}  );
+        let waveDataRenderTarget = gpgpu.computation.createRenderTarget();
 
         return (newProps)=>
         {
@@ -123,9 +128,14 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
             gpgpu.computation.doRenderTarget( spectrumPass, renderTarget );
             gpgpu.computation.doRenderTarget( initialAndConjugatePass, outputRenderTarget );
 
+            gpgpu.computation.doRenderTarget( waveDataPass, waveDataRenderTarget );
+
             
 
-            return(outputRenderTarget.texture)
+            return[
+                outputRenderTarget.texture,
+                waveDataRenderTarget.texture
+            ]
             // return(renderTarget.texture)
         }
         
@@ -135,10 +145,7 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
     export function compute(renderer,scene, props)
     {
         //parameters to pass in
-        let rez=1024;
-        
-
-
+        let rez=256;
 
         //set up gpgpu
         const gpgpu= {}
@@ -158,7 +165,7 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
 
         //create the spectrum texture
         const spectrumCreator = createSpectrumTexture(gpgpu,randomDispersionTexture,props);
-        const spectrumTexture = spectrumCreator()
+        const [initalSpectrum, waveDataTexture] = spectrumCreator()
 
         /**
          * CREATE THE UPDATING COMPUTE SHADERS
@@ -172,23 +179,27 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
          * - add lighting, not sure if this needs to be a pass
          */
        
+        const DxDy_PhaseTexture = gpgpu.computation.createTexture();
+        const DyxDxx_PhaseTexture = gpgpu.computation.createTexture();
+
         const phaseTexture = gpgpu.computation.createTexture();
         const displacementTexture = gpgpu.computation.createTexture();
         const derivativesTexture = gpgpu.computation.createTexture();
         
 
-        gpgpu.phaseVariable  = gpgpu.computation.addVariable('textureComplex', fftShader, phaseTexture)
+        gpgpu.DxDyVariable  = gpgpu.computation.addVariable('DxDy_PhaseTexture', computeDxDy_Phase, DxDy_PhaseTexture)
+        gpgpu.DyxDxxVariable  = gpgpu.computation.addVariable('DyxDxx_PhaseTexture', computeDyxDxx_Phase, DyxDxx_PhaseTexture)
 
-        // gpgpu.displacementVariable = gpgpu.computation.addVariable('textureDisplacement', displacementFragment, displacementTexture)
-        // gpgpu.derivativesVariable  = gpgpu.computation.addVariable('textureDerivatives' , derivativeFragment  , derivativesTexture)
 
-        // gpgpu.computation.setVariableDependencies(gpgpu.displacementVariable,[gpgpu.phaseVariable])
-        // gpgpu.computation.setVariableDependencies(gpgpu.displacementVariable,[gpgpu.phaseVariable])
 
-        gpgpu.phaseVariable.material.uniforms.utime=new THREE.Uniform(0)
-        gpgpu.phaseVariable.material.uniforms.u_transformSize=new THREE.Uniform(512)
-        gpgpu.phaseVariable.material.uniforms.u_subtransformSize=new THREE.Uniform(512)
-        gpgpu.phaseVariable.material.uniforms.u_input= new THREE.Uniform(spectrumTexture)
+        gpgpu.DxDyVariable.material.uniforms.uTime=new THREE.Uniform(0)
+        gpgpu.DxDyVariable.material.uniforms.waveDataTexture=new THREE.Uniform(waveDataTexture)
+        gpgpu.DxDyVariable.material.uniforms.h0kTexture=new THREE.Uniform(initalSpectrum)
+
+        gpgpu.DyxDxxVariable.material.uniforms.uTime=new THREE.Uniform(0)
+        gpgpu.DyxDxxVariable.material.uniforms.waveDataTexture=new THREE.Uniform(waveDataTexture)
+        gpgpu.DyxDxxVariable.material.uniforms.h0kTexture=new THREE.Uniform(initalSpectrum)
+
 
         gpgpu.computation.init()
         //do initial calculations
@@ -203,10 +214,34 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
         
         gpgpu.debug = new THREE.Mesh(
             new THREE.PlaneGeometry(1,1),
-            new THREE.MeshBasicMaterial({map:spectrumTexture})
+            new THREE.MeshBasicMaterial({map:initalSpectrum})
         )
 
         scene.add(gpgpu.debug)
+
+        gpgpu.debug2 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1,1),
+            new THREE.MeshBasicMaterial({map:waveDataTexture})
+        )
+        gpgpu.debug2.position.x-=1.1;
+
+        scene.add(gpgpu.debug2)
+
+        gpgpu.debug3 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1,1),
+            new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget( gpgpu.DxDyVariable ).texture})
+        )
+        gpgpu.debug3.position.x+=1.1;
+
+        scene.add(gpgpu.debug3)
+
+        gpgpu.debug4 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1,1),
+            new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget( gpgpu.DyxDxxVariable ).texture})
+        )
+        gpgpu.debug4.position.y+=1.1;
+
+        scene.add(gpgpu.debug4)
 
         return {
             updateParams: (props)=>
@@ -217,7 +252,8 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
             compute: (elapsedTime)=>
             {
                 //run the update function
-                gpgpu.phaseVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
+                gpgpu.DyxDxxVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
+                gpgpu.DxDyVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
                 gpgpu.computation.compute()
             }
         }
