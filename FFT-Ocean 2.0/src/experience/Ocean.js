@@ -135,7 +135,7 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
     export function compute(renderer,scene, props)
     {
         //parameters to pass in
-        let rez=256;
+        let rez=1024;
         
 
 
@@ -153,7 +153,7 @@ import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute
 
         //create the random texture. In our case a gaussian distribution
         let randomDispersionTexture= gpgpu.computation.createTexture()
-        randomDispersionTexture=  Guassian.gaussianTexture(256,randomDispersionTexture)
+        randomDispersionTexture=  Guassian.gaussianTexture(rez,randomDispersionTexture)
         console.log(randomDispersionTexture.image.data)
 
         //create the spectrum texture

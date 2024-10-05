@@ -177,8 +177,8 @@ void main()
 
 
         //Calculate swell
-        // float Dswell= swellDirection( w,  wp,  waveWindAngle,  swellAngle, swellStrength,  pi);
-        float Dswell= swellDirection( w,  wp,  waveWindAngle,  swellStrength);
+        float Dswell= swellDirection( w,  wp,  waveWindAngle,  swellAngle, swellStrength,  pi);
+        // float Dswell= swellDirection( w,  wp,  waveWindAngle,  swellStrength);
 
 
         //combine directional spread
@@ -192,7 +192,7 @@ void main()
         COMBINE THE DIRECTIONAL SPREAD AND ENERGY FUNCTIONS
         ----------------------------------------------------------------------------------*/
 
-        float spectrum = S* Dwind;
+         float spectrum = S* Dwind;
         // spectrum += S* Dswell;
 
         // float spectrum = S * mix(Dwind, Dswell, 0.5);
