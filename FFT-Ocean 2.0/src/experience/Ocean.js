@@ -16,6 +16,7 @@ import spectrumVertex from "../shaders/spectrum/vertex.glsl"
 import spectrumFragment from "../shaders/spectrum/fragment.glsl"
 
 import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
+import complexConjugateCompute from "../shaders/spectrum/complexConjugateCompute.glsl"
 
 //compute
 // import oceanVertexShader from '../Shaders/ocean/vertex.glsl'
@@ -94,11 +95,16 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
         }
         console.log(uniforms)
 
-        //set up the shader pass
+        //set up the shader pass #1, initial spectrum
         const spectrumPass = gpgpu.computation.createShaderMaterial( spectrumCompute,  uniforms  );
-
         let renderTarget = gpgpu.computation.createRenderTarget();
 
+        //shader pass 2, add the complex conjugate
+        const initialAndConjugatePass = gpgpu.computation.createShaderMaterial( complexConjugateCompute,{initialSpectrumTexture:{value:null}}  );
+
+        initialAndConjugatePass.uniforms.initialSpectrumTexture.value = renderTarget.texture;
+
+        const outputRenderTarget = gpgpu.computation.createRenderTarget();
 
         return (newProps)=>
         {
@@ -115,9 +121,12 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
 
             //render the texture to the rendertarget
             gpgpu.computation.doRenderTarget( spectrumPass, renderTarget );
+            gpgpu.computation.doRenderTarget( initialAndConjugatePass, outputRenderTarget );
 
+            
 
-            return(renderTarget.texture)
+            return(outputRenderTarget.texture)
+            // return(renderTarget.texture)
         }
         
     }
@@ -168,7 +177,7 @@ import spectrumCompute from "../shaders/spectrum/spectrumCompute.glsl"
         const derivativesTexture = gpgpu.computation.createTexture();
         
 
-        gpgpu.phaseVariable  = gpgpu.computation.addVariable('texturePhase', fftShader, phaseTexture)
+        gpgpu.phaseVariable  = gpgpu.computation.addVariable('textureComplex', fftShader, phaseTexture)
 
         // gpgpu.displacementVariable = gpgpu.computation.addVariable('textureDisplacement', displacementFragment, displacementTexture)
         // gpgpu.derivativesVariable  = gpgpu.computation.addVariable('textureDerivatives' , derivativeFragment  , derivativesTexture)
