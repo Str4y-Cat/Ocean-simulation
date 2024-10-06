@@ -23,8 +23,9 @@
         return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);
     }
 
-    void main (void) {
+    void main () {
         vec2 uv = gl_FragCoord.xy / resolution.xy;
+        vec4 test = texture(u_input,uv);
 
         #ifdef HORIZONTAL
         float index = uv.x * u_transformSize - 0.5;
@@ -34,13 +35,13 @@
 
         float evenIndex = floor(index / u_subtransformSize) * (u_subtransformSize * 0.5) + mod(index, u_subtransformSize * 0.5);
         
-        //transform two complex sequences simultaneously
+        // // transform two complex sequences simultaneously
         #ifdef HORIZONTAL
-        vec4 even = texture2D(u_input, vec2(evenIndex + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
-        vec4 odd = texture2D(u_input, vec2(evenIndex + u_transformSize * 0.5 + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
+        vec4 even = texture(u_input, vec2(evenIndex + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
+        vec4 odd = texture(u_input, vec2(evenIndex + u_transformSize * 0.5 + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
         #else
-        vec4 even = texture2D(u_input, vec2(gl_FragCoord.x, evenIndex + 0.5) / u_transformSize).rgba;
-        vec4 odd = texture2D(u_input, vec2(gl_FragCoord.x, evenIndex + u_transformSize * 0.5 + 0.5) / u_transformSize).rgba;
+        vec4 even = texture(u_input, vec2(gl_FragCoord.x, evenIndex + 0.5) / u_transformSize).rgba;
+        vec4 odd = texture(u_input, vec2(gl_FragCoord.x, evenIndex + u_transformSize * 0.5 + 0.5) / u_transformSize).rgba;
         #endif
 
         float twiddleArgument = -2.0 * PI * (index / u_subtransformSize);
@@ -48,10 +49,10 @@
 
         vec2 outputA = even.xy + multiplyComplex(twiddle, odd.xy);
         vec2 outputB = even.zw + multiplyComplex(twiddle, odd.zw);
-
-        // outputA+=1000
-        // outputB+=1000
         
         gl_FragColor = vec4(outputA, outputB);
+        // gl_FragColor = vec4(evenIndex,0.0, 1.0,1.0);
+        // gl_FragColor = test;
+        // gl_FragColor= vec4(uv,0.0,1.0);
         // gl_FragColor = vec4(1.0,0.0,0.0,1.0);
     }

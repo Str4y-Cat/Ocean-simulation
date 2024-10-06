@@ -7,7 +7,7 @@ import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer
 //imports
 import gpgpuTestShader from "../shaders/gpgpu/test.glsl"
 
-import fftShader from '../shaders/utils/fft.glsl'
+import computeFFT from '../shaders/utils/fft.glsl'
 
 import pointVertexShader from "../shaders/points/vertex.glsl"
 import pointFragmentShader from "../shaders/points/fragment.glsl"
@@ -182,14 +182,15 @@ import computeDyxDxx_Phase from "../shaders/phase/DyxDxx_Phase.glsl"
         const DxDy_PhaseTexture = gpgpu.computation.createTexture();
         const DyxDxx_PhaseTexture = gpgpu.computation.createTexture();
 
-        const phaseTexture = gpgpu.computation.createTexture();
         const displacementTexture = gpgpu.computation.createTexture();
         const derivativesTexture = gpgpu.computation.createTexture();
         
 
-        gpgpu.DxDyVariable  = gpgpu.computation.addVariable('DxDy_PhaseTexture', computeDxDy_Phase, DxDy_PhaseTexture)
-        gpgpu.DyxDxxVariable  = gpgpu.computation.addVariable('DyxDxx_PhaseTexture', computeDyxDxx_Phase, DyxDxx_PhaseTexture)
+        gpgpu.DxDyVariable  = gpgpu.computation.addVariable('phaseTexture', computeDxDy_Phase, DxDy_PhaseTexture)
+        gpgpu.DyxDxxVariable  = gpgpu.computation.addVariable('phaseTexture', computeDyxDxx_Phase, DyxDxx_PhaseTexture)
 
+        gpgpu.displacementVariable  = gpgpu.computation.addVariable('displacementTexture', computeFFT, derivativesTexture)
+        gpgpu.computation.setVariableDependencies( gpgpu.displacementVariable, [ gpgpu.displacementVariable, gpgpu.DxDyVariable ] );  
 
 
         gpgpu.DxDyVariable.material.uniforms.uTime=new THREE.Uniform(0)
@@ -200,10 +201,15 @@ import computeDyxDxx_Phase from "../shaders/phase/DyxDxx_Phase.glsl"
         gpgpu.DyxDxxVariable.material.uniforms.waveDataTexture=new THREE.Uniform(waveDataTexture)
         gpgpu.DyxDxxVariable.material.uniforms.h0kTexture=new THREE.Uniform(initalSpectrum)
 
+        // gpgpu.displacementVariable.material.uniforms.u_transformSize= rez;
+        // gpgpu.displacementVariable.material.uniforms.u_subtransformSize=
+
 
         gpgpu.computation.init()
         //do initial calculations
 
+
+        const updateFFT =  renderSpectrumFFT(gpgpu, rez )
 
 
         //debug
@@ -239,9 +245,19 @@ import computeDyxDxx_Phase from "../shaders/phase/DyxDxx_Phase.glsl"
             new THREE.PlaneGeometry(1,1),
             new THREE.MeshBasicMaterial({map:gpgpu.computation.getCurrentRenderTarget( gpgpu.DyxDxxVariable ).texture})
         )
-        gpgpu.debug4.position.y+=1.1;
+        gpgpu.debug4.position.x+=1.1;
+        gpgpu.debug4.position.y-=1.1;
 
         scene.add(gpgpu.debug4)
+
+        gpgpu.debug5 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1,1),
+            new THREE.MeshBasicMaterial()
+        )
+        gpgpu.debug5.position.x+=2.2;
+        
+
+        scene.add(gpgpu.debug5)
 
         return {
             updateParams: (props)=>
@@ -255,23 +271,140 @@ import computeDyxDxx_Phase from "../shaders/phase/DyxDxx_Phase.glsl"
                 gpgpu.DyxDxxVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
                 gpgpu.DxDyVariable.material.uniforms.uTime = new THREE.Uniform(elapsedTime)
                 gpgpu.computation.compute()
+
+                // const texture=
+                gpgpu.debug5.material.map = updateFFT(gpgpu.computation.getCurrentRenderTarget( gpgpu.DyxDxxVariable ).texture)
+                // gpgpu.debug5.material.map= gpgpu.computation.getCurrentRenderTarget( gpgpu.DyxDxxVariable ).texture
             }
         }
     }
 
-    // export function compute()
-    // {
-    //     //set up gpgpu
+    function renderSpectrumFFT(gpgpu,rez) {
 
-    //     //do initial calculations
+        //variables
+        //resolution 
+        //oceanHorizontal   
+        //oceanVertical
+    
+        //could refactor this to only be one shader material. ADD/REMOVE the horizontal part dynamically
+        const oceanHorizontal = gpgpu.computation.createShaderMaterial( "#define HORIZONTAL \n" + computeFFT, { inputTexture: { value: null }, u_subtransformSize:{value: null} } );
+        const oceanHorizontalPong = gpgpu.computation.createShaderMaterial( "#define HORIZONTAL \n" + computeFFT, { inputTexture: { value: null }, u_subtransformSize:{value: null} } );
+        const oceanVertical = gpgpu.computation.createShaderMaterial(   computeFFT, { inputTexture: { value: null } , u_subtransformSize:{value: null} } );
+
+        oceanHorizontal.uniforms.u_transformSize = new THREE.Uniform(rez);
+        oceanVertical.uniforms.u_transformSize = new THREE.Uniform(rez);
+    
+        const renderTarget = gpgpu.computation.createRenderTarget();
+        const renderTargetPong = gpgpu.computation.createRenderTarget();
+    
+        // GPU FFT using Stockham formulation
+        // const iterations = Math.log2( rez ) * 2; // log2
+        const iterations = Math.log2( rez ) * 2; // log2
+        
+        // this.scene.overrideMaterial = oceanHorizontal;
+        // var subtransformProgram = oceanHorizontal;
+        
+        // Processus 0-N
+        // material = materialOceanHorizontal
+        // 0 : material( spectrumFramebuffer ) > pingTransformFramebuffer
+        
+        // i%2==0 : material( pongTransformFramebuffer ) > pingTransformFramebuffer
+        // i%2==1 : material( pingTransformFramebuffer ) > pongTransformFramebuffer
+        
+        // i == N/2 : material = materialOceanVertical
+        
+        // i%2==0 : material( pongTransformFramebuffer ) > pingTransformFramebuffer
+        // i%2==1 : material( pingTransformFramebuffer ) > pongTransformFramebuffer
+        
+        // N-1 : materialOceanVertical( pingTransformFramebuffer / pongTransformFramebuffer ) > displacementMapFramebuffer
+        
+        // var frameBuffer;
+        // var inputBuffer;
+        return (startTexture)=>
+        {
+            oceanHorizontal.uniforms.u_input = new THREE.Uniform(startTexture);
+            oceanHorizontalPong.uniforms.u_input = new THREE.Uniform(renderTarget.texture);
+            
+
+            // oceanVertical.uniforms.u_input = new THREE.Uniform(renderTarget.texture);
+
+            for (var i = 0; i < iterations; i++) {
+                // if (i === 0) {
+                //     inputBuffer = this.spectrumFramebuffer;
+                //     frameBuffer = this.pingTransformFramebuffer ;
+                // } 
+                // else if (i === iterations - 1) {
+                //     inputBuffer = ((iterations % 2 === 0)? this.pingTransformFramebuffer : this.pongTransformFramebuffer) ;
+                //     frameBuffer = this.displacementMapFramebuffer ;
+                // }
+                // else if (i % 2 === 1) {
+                //     inputBuffer = this.pingTransformFramebuffer;
+                //     frameBuffer = this.pongTransformFramebuffer ;
+                // }
+                // else {
+                //     inputBuffer = this.pongTransformFramebuffer;
+                //     frameBuffer = this.pingTransformFramebuffer ;
+                // }
+                
+                // if (i === iterations / 2) {
+                //     subtransformProgram = this.materialOceanVertical;
+                //     this.scene.overrideMaterial = this.materialOceanVertical;
+                // }
+                
+                // subtransformProgram.uniforms.u_input.value = inputBuffer;
+                // subtransformProgram.uniforms.u_subtransformSize.value = Math.pow(2, (i % (iterations / 2) + 1 )); //set the uniform subtransform
+                // this.renderer.render(this.scene, this.oceanCamera, frameBuffer); //compute
+    
+               
+                
+                //horizontal
+                if(i< iterations/2)
+                {
+                    
+                    oceanHorizontal.uniforms.u_subtransformSize.value = Math.pow(2, (i % (iterations / 2) + 1 )); //set the uniform subtransform
+                    
+                    //compute the horizontal texture, save the texture back into itself
+                    if(i===0)
+                    {
+                    gpgpu.computation.doRenderTarget( oceanHorizontal, renderTarget );
+
+                    // const texture= renderTarget.texture;
+                    // oceanHorizontal.uniforms.u_input.value = texture;
+                    // oceanHorizontal.uniforms.u_input.value = renderTargetPong.texture
 
 
-    //     //returns update function to be called on tick
-    //     return (elapsedTime)=>
-    //     {
-    //         //run the update function
-    //     }
-    // }
+                    }
+                    else{
+                        //odd
+                        if(i%2!=0)
+                        {
+                            gpgpu.computation.doRenderTarget( oceanHorizontalPong, renderTargetPong );
+
+                        }
+                        else{
+                            gpgpu.computation.doRenderTarget( oceanHorizontal, renderTarget );
+
+                        }
+                    }
+                    //first itteration uses a predefined input texture, then it sets the inputTexture tot the rendered texture target
+                    
+                }
+    
+                //vertical
+                else
+                {
+                    oceanVertical.uniforms.u_subtransformSize.value = Math.pow(2, (i % (iterations / 2) + 1 )); //set the uniform subtransform
+                    //compute the vertical texture, save the texture back into itself
+                    gpgpu.computation.doRenderTarget( oceanVertical, renderTarget );
+                }
+            }
+            //return the final texture
+            
+            return renderTarget.texture
+        }
+        
+        
+    };
 
     export function main(scene, params)
     {
