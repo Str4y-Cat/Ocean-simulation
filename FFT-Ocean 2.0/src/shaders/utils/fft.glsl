@@ -30,6 +30,7 @@
         #ifdef HORIZONTAL
         float index = uv.x * u_transformSize - 0.5;
         #else
+        
         float index = uv.y * u_transformSize - 0.5;
         #endif
 
@@ -40,6 +41,7 @@
         vec4 even = texture(u_input, vec2(evenIndex + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
         vec4 odd = texture(u_input, vec2(evenIndex + u_transformSize * 0.5 + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
         #else
+
         vec4 even = texture(u_input, vec2(gl_FragCoord.x, evenIndex + 0.5) / u_transformSize).rgba;
         vec4 odd = texture(u_input, vec2(gl_FragCoord.x, evenIndex + u_transformSize * 0.5 + 0.5) / u_transformSize).rgba;
         #endif
