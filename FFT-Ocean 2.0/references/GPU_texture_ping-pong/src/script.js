@@ -1,8 +1,10 @@
-import * as THREE from 'three';
-import { storageTexture, wgslFn, code, instanceIndex, uniform } from 'three/tsl';
-
+import * as THREE from 'three/tsl';
+//import { THREE.storageTexture, THREE.wgslFn, THREE.code, THREE.instanceIndex, THREE.uniform } from "three/tsl";
 import WebGPU from 'three/addons/capabilities/WebGPU.js';
 
+console.log('starting the GPU ping pong')
+
+console.log(THREE)
 let camera, scene, renderer;
 let computeInitNode, computeToPing, computeToPong;
 let pingTexture, pongTexture;
@@ -10,51 +12,51 @@ let material;
 let phase = true;
 let lastUpdate = - 1;
 
-const seed = uniform(new THREE.Vector2());
+const seed = THREE.uniform(new THREE.Vector2());
 
 init();
 
-function init() {
+async function init() {
 
-    if (WebGPU.isAvailable() === false) {
+	if (await WebGPU.isAvailable() === false) {
 
-        document.body.appendChild(WebGPU.getErrorMessage());
+		document.body.appendChild(WebGPU.getErrorMessage());
 
-        throw new Error('No WebGPU support');
+		throw new Error('No WebGPU support');
 
-    }
+	}
 
-    const aspect = window.innerWidth / window.innerHeight;
-    camera = new THREE.OrthographicCamera(- aspect, aspect, 1, - 1, 0, 2);
-    camera.position.z = 1;
+	const aspect = window.innerWidth / window.innerHeight;
+	camera = new THREE.OrthographicCamera(- aspect, aspect, 1, - 1, 0, 2);
+	camera.position.z = 1;
 
-    scene = new THREE.Scene();
+	scene = new THREE.Scene();
 
-    // texture
+	// texture
 
-    const hdr = true;
-    const width = 512, height = 512;
+	const hdr = true;
+	const width = 512, height = 512;
 
-    pingTexture = new THREE.StorageTexture(width, height);
-    pongTexture = new THREE.StorageTexture(width, height);
+	pingTexture = new THREE.StorageTexture(width, height);
+	pongTexture = new THREE.StorageTexture(width, height);
 
-    if (hdr) {
+	if (hdr) {
 
-        pingTexture.type = THREE.HalfFloatType;
-        pongTexture.type = THREE.HalfFloatType;
+		pingTexture.type = THREE.HalfFloatType;
+		pongTexture.type = THREE.HalfFloatType;
 
-    }
+	}
 
-    const wgslFormat = hdr ? 'rgba16float' : 'rgba8unorm';
+	const wgslFormat = hdr ? 'rgba16float' : 'rgba8unorm';
 
-    const readPing = storageTexture(pingTexture).setAccess('read-only');
-    const writePing = storageTexture(pingTexture).setAccess('write-only');
-    const readPong = storageTexture(pongTexture).setAccess('read-only');
-    const writePong = storageTexture(pongTexture).setAccess('write-only');
+	const readPing = THREE.storageTexture(pingTexture).setAccess('read-only');
+	const writePing = THREE.storageTexture(pingTexture).setAccess('write-only');
+	const readPong = THREE.storageTexture(pongTexture).setAccess('read-only');
+	const writePong = THREE.storageTexture(pongTexture).setAccess('write-only');
 
-    // compute init
+	// compute init
 
-    const rand2 = code(`
+	const rand2 = THREE.code(`
 					fn rand2( n: vec2f ) -> f32 {
 
 						return fract( sin( dot( n, vec2f( 12.9898, 4.1414 ) ) ) * 43758.5453 );
@@ -83,7 +85,7 @@ function init() {
 					}
 				` );
 
-    const computeInitWGSL = wgslFn(`
+	const computeInitWGSL = THREE.wgslFn(`
 					fn computeInitWGSL( writeTex: texture_storage_2d<${wgslFormat}, write>, index: u32, seed: vec2f ) -> void {
 
 						let posX = index % ${width};
@@ -100,11 +102,11 @@ function init() {
 					}
 				`, [rand2]);
 
-    computeInitNode = computeInitWGSL({ writeTex: storageTexture(pingTexture), index: instanceIndex, seed }).compute(width * height);
+	computeInitNode = computeInitWGSL({ writeTex: THREE.storageTexture(pingTexture), index: THREE.instanceIndex, seed }).compute(width * height);
 
-    // compute loop
+	// compute loop
 
-    const computePingPongWGSL = wgslFn(`
+	const computePingPongWGSL = THREE.wgslFn(`
 					fn computePingPongWGSL( readTex: texture_storage_2d<${wgslFormat}, read>, writeTex: texture_storage_2d<${wgslFormat}, write>, index: u32 ) -> void {
 
 						let posX = index % ${width};
@@ -118,77 +120,77 @@ function init() {
 					}
 				`, [rand2]);
 
-    //
+	//
 
-    computeToPong = computePingPongWGSL({ readTex: readPing, writeTex: writePong, index: instanceIndex }).compute(width * height);
-    computeToPing = computePingPongWGSL({ readTex: readPong, writeTex: writePing, index: instanceIndex }).compute(width * height);
+	computeToPong = computePingPongWGSL({ readTex: readPing, writeTex: writePong, index: THREE.instanceIndex }).compute(width * height);
+	computeToPing = computePingPongWGSL({ readTex: readPong, writeTex: writePing, index: THREE.instanceIndex }).compute(width * height);
 
-    //
+	//
 
-    material = new THREE.MeshBasicMaterial({ color: 0xffffff, map: pongTexture });
+	material = new THREE.MeshBasicMaterial({ color: 0xffffff, map: pongTexture });
 
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
-    scene.add(plane);
+	const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+	scene.add(plane);
 
-    renderer = new THREE.WebGPURenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setAnimationLoop(render);
-    document.body.appendChild(renderer.domElement);
+	renderer = new THREE.WebGPURenderer({ antialias: true });
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setAnimationLoop(render);
+	document.body.appendChild(renderer.domElement);
 
-    window.addEventListener('resize', onWindowResize);
+	window.addEventListener('resize', onWindowResize);
 
-    // compute init
+	// compute init
 
-    renderer.computeAsync(computeInitNode);
+	renderer.computeAsync(computeInitNode);
 
 }
 
 function onWindowResize() {
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setSize(window.innerWidth, window.innerHeight);
 
-    const aspect = window.innerWidth / window.innerHeight;
+	const aspect = window.innerWidth / window.innerHeight;
 
-    const frustumHeight = camera.top - camera.bottom;
+	const frustumHeight = camera.top - camera.bottom;
 
-    camera.left = - frustumHeight * aspect / 2;
-    camera.right = frustumHeight * aspect / 2;
+	camera.left = - frustumHeight * aspect / 2;
+	camera.right = frustumHeight * aspect / 2;
 
-    camera.updateProjectionMatrix();
+	camera.updateProjectionMatrix();
 
 }
 
 function render() {
 
-    const time = performance.now();
-    const seconds = Math.floor(time / 1000);
+	const time = performance.now();
+	const seconds = Math.floor(time / 1000);
 
-    // reset every second
+	// reset every second
 
-    if (phase && seconds !== lastUpdate) {
+	if (phase && seconds !== lastUpdate) {
 
-        seed.value.set(Math.random(), Math.random());
+		seed.value.set(Math.random(), Math.random());
 
-        renderer.compute(computeInitNode);
+		renderer.compute(computeInitNode);
 
-        lastUpdate = seconds;
+		lastUpdate = seconds;
 
-    }
+	}
 
-    // compute step
+	// compute step
 
-    renderer.compute(phase ? computeToPong : computeToPing);
+	renderer.compute(phase ? computeToPong : computeToPing);
 
-    material.map = phase ? pongTexture : pingTexture;
+	material.map = phase ? pongTexture : pingTexture;
 
-    phase = !phase;
+	phase = !phase;
 
-    // render step
+	// render step
 
-    // update material texture node
+	// update material texture node
 
-    renderer.render(scene, camera);
+	renderer.render(scene, camera);
 
 }
 
