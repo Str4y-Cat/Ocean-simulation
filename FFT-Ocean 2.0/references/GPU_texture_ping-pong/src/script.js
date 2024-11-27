@@ -1,3 +1,4 @@
+//https://github.com/Spiri0/Threejs-WebGPU-IFFT-Ocean-V2/tree/main
 import * as THREE from 'three/tsl';
 //import { THREE.storageTexture, THREE.wgslFn, THREE.code, THREE.instanceIndex, THREE.uniform } from "three/tsl";
 import WebGPU from 'three/addons/capabilities/WebGPU.js';
