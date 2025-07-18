@@ -1,6 +1,4 @@
 import * as THREE from "three";
-//import * as STATS from "stats-js";
-// import Stats from "three/addons/libs/stats.module.js";
 
 import Sizes from "./Utils/Sizes";
 import Time from "./Utils/Time";
@@ -45,10 +43,6 @@ export default class Experience {
     this.raycaster = new Raycaster();
 
     this.setFog();
-
-    if (this.debug.active) {
-      document.body.append(this.stats.dom);
-    }
   }
 
   resize() {
