@@ -47,7 +47,6 @@ export default class Experience {
     this.setFog();
 
     if (this.debug.active) {
-      this.stats = new Stats();
       document.body.append(this.stats.dom);
     }
   }
@@ -60,7 +59,6 @@ export default class Experience {
 
   update() {
     if (this.debug.active) {
-      //this.stats.begin();
     }
     // console.log('update the experiance')
     this.raycaster.update();
@@ -69,7 +67,6 @@ export default class Experience {
     this.renderer.update();
 
     if (this.debug.active) {
-      //this.stats.end();
     }
   }
 
