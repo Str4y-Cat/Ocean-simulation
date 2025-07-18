@@ -89,7 +89,7 @@ export default class Experience {
   }
 
   setFog() {
-    this.scene.fog = new THREE.Fog("#000000", 30, 70);
+    //this.scene.fog = new THREE.Fog("#", 30, 70);
   }
 
   destroy() {
