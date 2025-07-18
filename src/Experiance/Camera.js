@@ -17,7 +17,6 @@ export default class Camera {
 
     //Debug
     if (this.debug.active) {
-      this.setDebug();
     }
   }
 
@@ -34,7 +33,9 @@ export default class Camera {
       0.1,
       100,
     );
-    this.instance.position.set(0, 5, -5);
+    // this.instance.position.set(0, 5, -5);
+    this.instance.position.set(0, 6, -0.1);
+    // this.instance.
 
     //this.instance.rotation.x += -Math.PI / 2;
     this.instance.rotation.x = 0;
@@ -59,34 +60,6 @@ export default class Camera {
 
     this.instance.aspect = this.sizes.width / this.sizes.height;
     this.instance.updateProjectionMatrix();
-  }
-
-  setDebug() {
-    this.debugFolder = this.debug.ui.addFolder("Camera");
-
-    this.debugFolder
-      .add(this.instance.position, "x")
-      .listen(true)
-      .min(-40)
-      .max(40)
-      .step(0.01)
-      .name("X Position");
-
-    this.debugFolder
-      .add(this.instance.position, "y")
-      .listen(true)
-      .min(-10)
-      .max(10)
-      .step(0.01)
-      .name("Y Position");
-
-    this.debugFolder
-      .add(this.instance.position, "z")
-      .listen(true)
-      .min(-40)
-      .max(40)
-      .step(0.01)
-      .name("Z Position");
   }
 
   update() {

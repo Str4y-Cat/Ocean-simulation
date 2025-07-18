@@ -33,7 +33,6 @@ export default class Ocean {
     if (this.debug.active) {
       this.setVertexShaderDebug();
       this.setMaterialDebug();
-      this.setAnnimationDebug();
     }
   }
 
@@ -171,8 +170,8 @@ export default class Ocean {
 
   setMesh() {
     this.mesh = this.grid.createGrid({
-      width: 64,
-      length: 64,
+      width: 32,
+      length: 32,
       cellLength: 16,
       cellWidth: 16,
       minRez: 32,
@@ -185,7 +184,7 @@ export default class Ocean {
       material: this.material,
       //materialLowRes: this.materialLowRes,
     });
-    this.mesh.position.z += 7;
+    this.mesh.position.z += 16;
 
     this.scene.add(this.mesh);
   }
@@ -251,36 +250,36 @@ export default class Ocean {
       .step(0.01)
       .name("metalness");
 
-    // folder
-    //     .add(this.material, "transmission")
-    //     .min(0)
-    //     .max(1)
-    //     .step(0.01)
-    //     .name("transmission");
-    // folder
-    //     .add(this.material, "thickness")
-    //     .min(0)
-    //     .max(10)
-    //     .step(0.01)
-    //     .name("thickness");
-    // folder
-    //     .add(this.material, "dispersion")
-    //     .min(0)
-    //     .max(1)
-    //     .step(0.01)
-    //     .name("dispersion");
+    folder
+      .add(this.material, "transmission")
+      .min(0)
+      .max(1)
+      .step(0.01)
+      .name("transmission");
+    folder
+      .add(this.material, "thickness")
+      .min(0)
+      .max(10)
+      .step(0.01)
+      .name("thickness");
+    folder
+      .add(this.material, "dispersion")
+      .min(0)
+      .max(1)
+      .step(0.01)
+      .name("dispersion");
 
-    // folder.add(this.material, "ior").min(0).max(5).step(0.01).name("ior");
+    folder.add(this.material, "ior").min(0).max(5).step(0.01).name("ior");
 
     // folder.addColor(debugValues, "attenuationColor").onChange((color) => {
-    //     this.material.attenuationColor = new THREE.Color(color);
+    //   this.material.attenuationColor = new THREE.Color(color);
     // });
     // folder
-    //     .add(this.material, "attenuationDistance")
-    //     .min(1)
-    //     .max(100)
-    //     .step(1)
-    //     .name("attenuationDistance");
+    //   .add(this.material, "attenuationDistance")
+    //   .min(1)
+    //   .max(100)
+    //   .step(1)
+    //   .name("attenuationDistance");
     // folder
     //     .add(this.material, "specularIntensity")
     //     .min(0)
@@ -401,12 +400,6 @@ export default class Ocean {
         this.material.userData.shader.uniforms.uMaxFrequency.value = val;
       })
       .name("uMaxFrequency");
-  }
-
-  setAnnimationDebug() {
-    this.debugFolder.add(this.experience.animations, "start");
-    this.debugFolder.add(this.experience.animations, "transitionIn");
-    this.debugFolder.add(this.experience.animations, "transitionOut");
   }
 
   //#endregion

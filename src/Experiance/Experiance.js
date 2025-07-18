@@ -1,6 +1,6 @@
 import * as THREE from "three";
 //import * as STATS from "stats-js";
-import Stats from "three/addons/libs/stats.module.js";
+// import Stats from "three/addons/libs/stats.module.js";
 
 import Sizes from "./Utils/Sizes";
 import Time from "./Utils/Time";
@@ -11,8 +11,6 @@ import Resources from "./Utils/Resources";
 import sources from "./sources";
 import Debug from "./Utils/Debug";
 import Raycaster from "./Utils/Raycaster";
-import PostProcessing from "./Postprocessing";
-// import World from '.World/World.js'
 
 //convert to singleton
 let instance = null;
@@ -41,8 +39,7 @@ export default class Experience {
 
     // this.resources = new Resources(sources);
     this.camera = new Camera();
-    // this.renderer = new Renderer();
-    this.renderer = new PostProcessing();
+    this.renderer = new Renderer();
     this.world = new World();
     this.init();
     this.raycaster = new Raycaster();
@@ -63,7 +60,7 @@ export default class Experience {
 
   update() {
     if (this.debug.active) {
-      this.stats.begin();
+      //this.stats.begin();
     }
     // console.log('update the experiance')
     this.raycaster.update();
@@ -72,7 +69,7 @@ export default class Experience {
     this.renderer.update();
 
     if (this.debug.active) {
-      this.stats.end();
+      //this.stats.end();
     }
   }
 
