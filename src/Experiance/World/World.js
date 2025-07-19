@@ -20,7 +20,7 @@ export default class World {
       //console.log("resources are starting to load");
     });
     this.resources.on("progress", (arg) => {
-      //console.log("progress", arg);
+      // console.log("progress", arg);
       //console.log("resources are progressing", progress);
     });
     this.resources.on("ready", () => {
